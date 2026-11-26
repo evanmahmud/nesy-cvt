@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1410" height="820" viewBox="0 0 1410 820" role="img" aria-labelledby="title desc">
+  <title id="title">NeSy-CVT neuro-symbolic AI architecture</title>
+  <desc id="desc">Neuro-symbolic image classification: a convolutional stem, Fourier feature mixer, and Transformer encoder feed neural fine-class and supervised superclass heads. A differentiable CIFAR-100 taxonomy reasoner applies explicit fixed fine-to-coarse rules and hierarchy consistency.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <style>
+      .title { font: 700 27px Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 15px Arial, sans-serif; fill: #475569; }
+      .label { font: 700 16px Arial, sans-serif; fill: #0f172a; }
+      .body { font: 14px Arial, sans-serif; fill: #334155; }
+      .small { font: 13px Arial, sans-serif; fill: #475569; }
+      .node { stroke: #64748b; stroke-width: 1.6; rx: 14; }
+      .edge { stroke: #475569; stroke-width: 2.2; fill: none; marker-end: url(#arrow); }
+      .training-edge { stroke: #7c3aed; stroke-width: 1.8; stroke-dasharray: 7 6; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1410" height="700" fill="#ffffff"/>
+  <text x="42" y="48" class="title">NeSy-CVT: Neuro-Symbolic Convolutional Vision Transformer</text>
+  <text x="42" y="76" class="subtitle">Neural visual features and learned concepts combined with explicit CIFAR-100 hierarchy rules</text>
+
+  <rect x="35" y="145" width="145" height="112" class="node" fill="#f8fafc"/>
+  <text x="107.5" y="184" text-anchor="middle" class="label">Input image</text>
+  <text x="107.5" y="211" text-anchor="middle" class="body">32 × 32 × 3</text>
+  <text x="107.5" y="235" text-anchor="middle" class="small">RGB pixels</text>
+
+  <path d="M180 201 H218" class="edge"/>
+  <rect x="225" y="145" width="180" height="112" class="node" fill="#dbeafe"/>
+  <text x="315" y="178" text-anchor="middle" class="label">CNN stem</text>
+  <text x="315" y="204" text-anchor="middle" class="body">3×3 convolution</text>
+  <text x="315" y="228" text-anchor="middle" class="body">2 depthwise residual blocks</text>
+  <text x="315" y="248" text-anchor="middle" class="small">96-channel feature map</text>
+
+  <path d="M405 201 H438" class="edge"/>
+  <rect x="445" y="145" width="190" height="112" class="node" fill="#ede9fe"/>
+  <text x="540" y="178" text-anchor="middle" class="label">Spectral mixer</text>
+  <text x="540" y="204" text-anchor="middle" class="body">rFFT2 → gated spectrum</text>
+  <text x="540" y="228" text-anchor="middle" class="body">→ irFFT2</text>
+  <text x="540" y="248" text-anchor="middle" class="small">zero gates initialize to identity</text>
+
+  <path d="M635 201 H668" class="edge"/>
+  <rect x="675" y="145" width="165" height="112" class="node" fill="#f1f5f9"/>
+  <text x="757.5" y="184" text-anchor="middle" class="label">Tokenize</text>
+  <text x="757.5" y="211" text-anchor="middle" class="body">flatten spatial map</text>
+  <text x="757.5" y="235" text-anchor="middle" class="small">1024 tokens × 96</text>
+
+  <path d="M840 201 H868" class="edge"/>
+  <rect x="875" y="145" width="180" height="112" class="node" fill="#dcfce7"/>
+  <text x="965" y="184" text-anchor="middle" class="label">Transformer</text>
+  <text x="965" y="211" text-anchor="middle" class="body">4 blocks, 4 heads</text>
+  <text x="965" y="235" text-anchor="middle" class="small">global token interactions</text>
+
+  <path d="M1055 201 H1083" class="edge"/>
+  <rect x="1090" y="145" width="180" height="112" class="node" fill="#e0f2fe"/>
+  <text x="1180" y="184" text-anchor="middle" class="label">Feature vector</text>
+  <text x="1180" y="211" text-anchor="middle" class="body">mean pool + LayerNorm</text>
+  <text x="1180" y="235" text-anchor="middle" class="small">96 dimensions</text>
+
+  <path d="M1180 257 V300 H665 V340" class="edge"/>
+  <path d="M1180 300 H1110 V340" class="training-edge"/>
+
+  <rect x="405" y="348" width="520" height="130" class="node" fill="#ffedd5"/>
+  <text x="665" y="381" text-anchor="middle" class="label">Neural fine-class head</text>
+  <text x="665" y="408" text-anchor="middle" class="body">normalize feature and learned class prototypes</text>
+  <text x="665" y="432" text-anchor="middle" class="body">scaled cosine similarities → 100 fine-class logits</text>
+  <text x="665" y="459" text-anchor="middle" class="small">neural evidence for each CIFAR-100 class</text>
+
+  <rect x="950" y="348" width="320" height="130" class="node" fill="#f5f3ff" stroke-dasharray="7 5"/>
+  <text x="1110" y="381" text-anchor="middle" class="label">Semantic concept head</text>
+  <text x="1110" y="408" text-anchor="middle" class="body">96 → 20 superclass logits</text>
+  <text x="1110" y="432" text-anchor="middle" class="body">supervised by CIFAR-100 coarse labels</text>
+  <text x="1110" y="459" text-anchor="middle" class="small">concept probabilities enter the rule layer</text>
+
+  <path d="M665 478 V515 H760 V535" class="edge"/>
+  <path d="M1110 478 V515 H1000 V535" class="edge"/>
+  <rect x="405" y="540" width="865" height="112" class="node" fill="#fef3c7"/>
+  <text x="837.5" y="571" text-anchor="middle" class="label">Neuro-Symbolic AI reasoner: differentiable CIFAR-100 taxonomy</text>
+  <text x="837.5" y="599" text-anchor="middle" class="body">neural fine-class scores + learned superclass concepts + fixed fine-to-coarse rules</text>
+  <text x="837.5" y="627" text-anchor="middle" class="small">fuses 100-class logits; symbolic rules are explicit and specific to CIFAR-100</text>
+
+  <path d="M837 652 V682" class="training-edge"/>
+  <rect x="405" y="690" width="865" height="70" class="node" fill="#f8fafc"/>
+  <text x="837.5" y="719" text-anchor="middle" class="label">Training objective</text>
+  <text x="837.5" y="744" text-anchor="middle" class="body">fine classification + coarse concept supervision + hierarchy consistency + prototype/spectral losses</text>
+
+  <line x1="42" y1="785" x2="90" y2="785" class="training-edge"/>
+  <text x="102" y="790" class="small">Supervision / consistency losses</text>
+  <text x="340" y="790" class="small">Legacy checkpoints may use a learned projection; check reasoning_mode in config.json.</text>
+</svg>

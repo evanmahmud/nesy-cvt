@@ -1,0 +1,167 @@
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+
+from .comparison import run_cifar100_comparison
+from .config import NesyCVTConfig
+from .evaluation import EvalConfig, evaluate
+from .hf_export import prepare_hf_export, push_to_hub, write_model_card
+from .model_factory import MODEL_NAMES
+from .training import TrainConfig, train
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="nesy-cvt", description="NeSy-CVT research CLI")
+    subcommands = parser.add_subparsers(dest="command", required=True)
+
+    train_parser = subcommands.add_parser("train", help="Run a small training job")
+    train_parser.add_argument("--dataset", choices=["synthetic", "cifar100"], default="synthetic")
+    train_parser.add_argument("--data-dir", default="data")
+    train_parser.add_argument("--download", action="store_true")
+    train_parser.add_argument("--output-dir", default="runs/nesy-cvt-tiny")
+    train_parser.add_argument(
+        "--model-size",
+        choices=["nano", "tiny", "small", "base", "large", "huge"],
+        default="tiny",
+    )
+    train_parser.add_argument("--epochs", type=int, default=1)
+    train_parser.add_argument("--batch-size", type=int, default=64)
+    train_parser.add_argument("--seed", type=int, default=42)
+    train_parser.add_argument("--synthetic-samples", type=int, default=256)
+    train_parser.add_argument("--device", choices=["auto", "cuda", "cpu"], default="auto")
+
+    eval_parser = subcommands.add_parser("eval", help="Evaluate a checkpoint")
+    eval_parser.add_argument("--checkpoint-dir", required=True)
+    eval_parser.add_argument("--output-path", default="runs/eval/metrics.json")
+    eval_parser.add_argument("--seed", type=int, default=42)
+    eval_parser.add_argument("--device", choices=["auto", "cuda", "cpu"], default="auto")
+    eval_parser.add_argument("--dataset", choices=["synthetic", "cifar100"], default="synthetic")
+    eval_parser.add_argument("--data-dir", default="data")
+    eval_parser.add_argument("--batch-size", type=int, default=64)
+    eval_parser.add_argument("--download", action="store_true")
+
+    benchmark_parser = subcommands.add_parser(
+        "benchmark", help="Train and compare NeSy-CVT against CIFAR-100 reference models"
+    )
+    benchmark_parser.add_argument(
+        "--models",
+        nargs="+",
+        choices=MODEL_NAMES,
+        default=["nesy_cvt", "resnet18_cifar", "mobilenet_v3_small", "vit_tiny_patch4"],
+    )
+    benchmark_parser.add_argument("--seeds", nargs="+", type=int, default=[42, 43, 44])
+    benchmark_parser.add_argument("--epochs", type=int, default=50)
+    benchmark_parser.add_argument("--batch-size", type=int, default=16)
+    benchmark_parser.add_argument("--learning-rate", type=float, default=3e-4)
+    benchmark_parser.add_argument("--taxonomy-rule-weight", type=float, default=0.5)
+    benchmark_parser.add_argument("--taxonomy-consistency-weight", type=float, default=0.1)
+    benchmark_parser.add_argument("--val-per-class", type=int, default=50)
+    benchmark_parser.add_argument("--warmup-batches", type=int, default=10)
+    benchmark_parser.add_argument("--data-dir", default="data")
+    benchmark_parser.add_argument("--download", action="store_true")
+    benchmark_parser.add_argument("--runs-dir", default="runs/cifar100-comparison")
+    benchmark_parser.add_argument("--report", default="results/cifar100-comparison.json")
+    benchmark_parser.add_argument("--device", choices=["auto", "cuda", "cpu"], default="auto")
+    benchmark_parser.add_argument(
+        "--validation-only",
+        action="store_true",
+        help="Skip the CIFAR-100 test split; report validation metrics only.",
+    )
+
+    export_parser = subcommands.add_parser("export", help="Write config and HF model card template")
+    export_parser.add_argument("--checkpoint-dir")
+    export_parser.add_argument("--output-dir", default="hf_export/nesy-cvt")
+    export_parser.add_argument("--model-name", default="NeSy-CVT")
+    export_parser.add_argument("--results-path")
+
+    push_parser = subcommands.add_parser("push-hf", help="Upload an exported folder to Hugging Face")
+    push_parser.add_argument("--repo-id", required=True)
+    push_parser.add_argument("--local-dir", required=True)
+    push_parser.add_argument("--private", action="store_true")
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+
+    if args.command == "train":
+        from .model_factory import config_for_model
+
+        metrics = train(
+            TrainConfig(
+                output_dir=args.output_dir,
+                dataset=args.dataset,
+                data_dir=args.data_dir,
+                download=args.download,
+                epochs=args.epochs,
+                batch_size=args.batch_size,
+                seed=args.seed,
+                synthetic_samples=args.synthetic_samples,
+                device=args.device,
+            ),
+            model_config=config_for_model(f"nesy_cvt_{args.model_size}", NesyCVTConfig()),
+        )
+        print(json.dumps(metrics, indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "eval":
+        metrics = evaluate(
+            EvalConfig(
+                checkpoint_dir=args.checkpoint_dir,
+                output_path=args.output_path,
+                seed=args.seed,
+                device=args.device,
+                dataset=args.dataset,
+                data_dir=args.data_dir,
+                batch_size=args.batch_size,
+                download=args.download,
+            )
+        )
+        print(json.dumps(metrics, indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "benchmark":
+        run_cifar100_comparison(
+            models=args.models,
+            seeds=args.seeds,
+            data_dir=args.data_dir,
+            download=args.download,
+            runs_dir=args.runs_dir,
+            report_path=args.report,
+            device_name=args.device,
+            epochs=args.epochs,
+            batch_size=args.batch_size,
+            learning_rate=args.learning_rate,
+            val_per_class=args.val_per_class,
+            warmup_batches=args.warmup_batches,
+            validation_only=args.validation_only,
+            taxonomy_rule_weight=args.taxonomy_rule_weight,
+            taxonomy_consistency_weight=args.taxonomy_consistency_weight,
+        )
+        return 0
+
+    if args.command == "export":
+        if args.checkpoint_dir:
+            output_dir = prepare_hf_export(
+                args.checkpoint_dir,
+                args.output_dir,
+                model_name=args.model_name,
+                results_path=args.results_path,
+            )
+        else:
+            config = NesyCVTConfig()
+            output_dir = Path(args.output_dir)
+            config.save_pretrained(output_dir)
+            write_model_card(output_dir, config, model_name=args.model_name)
+        print(str(output_dir))
+        return 0
+
+    if args.command == "push-hf":
+        push_to_hub(args.repo_id, args.local_dir, private=args.private)
+        return 0
+
+    parser.error(f"unknown command: {args.command}")
+    return 2

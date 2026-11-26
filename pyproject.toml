@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "nesy-cvt"
+version = "0.1.0"
+description = "Experimental hybrid convolutional transformer for image classification research."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+authors = [{ name = "NeSy-CVT Contributors" }]
+keywords = [
+  "computer-vision",
+  "neuro-symbolic-ai",
+  "vision-transformer",
+  "cnn",
+  "spectral-mixing",
+  "image-classification",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = []
+
+[project.optional-dependencies]
+train = [
+  "torch>=2.7",
+  "torchvision>=0.22",
+]
+hub = [
+  "huggingface_hub>=0.30",
+]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.8",
+  "build>=1.2",
+  "twine>=6.0",
+]
+
+[project.scripts]
+nesy-cvt = "nesy_cvt.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/nesy_cvt"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
