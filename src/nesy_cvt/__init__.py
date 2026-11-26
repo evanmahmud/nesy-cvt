@@ -7,6 +7,7 @@ __all__ = [
     "NesyCVTForImageClassification",
     "NesyCVTOutput",
     "create_model",
+    "load_pretrained",
     "nesy_cvt_base",
     "nesy_cvt_huge",
     "nesy_cvt_large",
@@ -27,6 +28,7 @@ def __getattr__(name):
         return values[name]
     if name in {
         "create_model",
+        "load_pretrained",
         "nesy_cvt_base",
         "nesy_cvt_huge",
         "nesy_cvt_large",

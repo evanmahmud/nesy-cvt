@@ -1,5 +1,13 @@
 # NeSy-CVT
 
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![PyTorch 2.7+](https://img.shields.io/badge/PyTorch-2.7%2B-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![CUDA optional](https://img.shields.io/badge/CUDA-optional-76B900?logo=nvidia&logoColor=white)](https://pytorch.org/get-started/locally/)
+[![Task: image classification](https://img.shields.io/badge/Task-Image%20Classification-336699)](https://huggingface.co/models?pipeline_tag=image-classification)
+[![Dataset: CIFAR-100](https://img.shields.io/badge/Dataset-CIFAR--100-6A5ACD)](https://www.cs.toronto.edu/~kriz/cifar.html)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+[![Hugging Face model](https://img.shields.io/badge/Hugging%20Face-Model-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/evanmahmud/nesy-cvt)
+
 **NeSy-CVT (Neuro-Symbolic Convolutional Vision Transformer)** is an experimental image-classification model family. The released CIFAR-100 taxonomy variants combine local convolutional features, Fourier-domain feature mixing, Transformer blocks, supervised superclass concepts, and a fixed fine-to-coarse rule layer.
 
 | Resource | Link |
@@ -37,7 +45,7 @@ The taxonomy presets train with fine-label cross-entropy, coarse-concept cross-e
 
 ## Model variants
 
-The Hub repository contains trained checkpoints for all six taxonomy presets. The root checkpoint is Huge for compatibility; use `subfolder` to select a size explicitly.
+The Hub repository contains trained checkpoints for all six taxonomy presets. The root checkpoint is Huge for compatibility; each size also has a named subfolder. Use `load_pretrained("tiny")` for the short Python API shown below.
 
 | Variant | Width | Transformer blocks | Heads | Parameters (M) | Hub subfolder |
 |---|---:|---:|---:|---:|---|
@@ -71,17 +79,14 @@ The report extra includes Plotly Express, pandas, and Kaleido for interactive HT
 
 ## Use a pretrained Hub checkpoint
 
-Load a selected variant using its Hub folder name:
+Load a trained checkpoint with the short API. It downloads the selected variant and returns it in evaluation mode:
 
 ```python
 import torch
-from nesy_cvt import NesyCVTForImageClassification
+from nesy_cvt import load_pretrained
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-model = NesyCVTForImageClassification.from_pretrained(
-    "evanmahmud/nesy-cvt",
-    subfolder="tiny",  # nano, tiny, small, base, large, or huge
-).to(device).eval()
+model = load_pretrained("tiny", device=device)  # nano, tiny, small, base, large, or huge
 
 # Supply a batch of RGB images as float tensors with shape [N, 3, 32, 32]
 # and values in [0, 1]. This example uses random pixels for an inference smoke check.
@@ -95,13 +100,23 @@ print("predicted superclass IDs:",
       output.reasoning_trace["concept_probabilities"].argmax(dim=-1).tolist())
 ```
 
-For the root Huge checkpoint, omit `subfolder="tiny"`. For actual images, resize to 32×32 and convert RGB pixels to float tensors in `[0, 1]` using the same `ToTensor` preprocessing as training; do not apply ImageNet mean/std normalization. Use the CIFAR-100 fine-label map to convert class IDs to names. The model is trained for 32×32 CIFAR-100 images and is not validated for arbitrary image sizes or domains.
+When using the explicit class API, omit `subfolder` to load the Huge checkpoint at the repository root. For actual images, resize to 32×32 and convert RGB pixels to float tensors in `[0, 1]` using the same `ToTensor` preprocessing as training; do not apply ImageNet mean/std normalization. Use the CIFAR-100 fine-label map to convert class IDs to names. The model is trained for 32×32 CIFAR-100 images and is not validated for arbitrary image sizes or domains.
 
 `output.logits` contains fine-class scores. In taxonomy mode, `output.reasoning_trace` contains the neural scores, concept probabilities, per-class rule scores, and the fine-to-coarse mapping. `output.concept_logits` contains the raw 20 concept scores.
 
+The explicit Hub form is also available when you want to choose a repository, revision, or access token:
+
+```python
+from nesy_cvt import NesyCVTForImageClassification
+
+model = NesyCVTForImageClassification.from_pretrained(
+    "evanmahmud/nesy-cvt", subfolder="tiny"
+).to(device).eval()
+```
+
 ### Create an untrained architecture
 
-The package also exposes size constructors. They create new random-weight models; they do not download the released checkpoint.
+The package also exposes size constructors such as `nesy_cvt_tiny()` and `nesy_cvt_base()`. They create new random-weight architectures, just as a model constructor with random initialization would; they do not download pretrained weights. Use `load_pretrained("tiny")` to fetch a trained Tiny checkpoint.
 
 ```python
 from nesy_cvt import nesy_cvt_nano, nesy_cvt_tiny, nesy_cvt_small

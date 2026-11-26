@@ -64,16 +64,14 @@ Install a compatible PyTorch build and `huggingface_hub`, then install this proj
 pip install "git+https://github.com/evanmahmud/nesy-cvt.git" "huggingface_hub>=0.30"
 ```
 
-Example with the Tiny checkpoint:
+The short API downloads a selected checkpoint and puts it in evaluation mode:
 
 ```python
 import torch
-from nesy_cvt import NesyCVTForImageClassification
+from nesy_cvt import load_pretrained
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-model = NesyCVTForImageClassification.from_pretrained(
-    "evanmahmud/nesy-cvt", subfolder="tiny"
-).to(device).eval()
+model = load_pretrained("tiny", device=device)
 
 # Replace random input with RGB images resized to 32 x 32 and converted to [0, 1].
 pixel_values = torch.rand(2, 3, 32, 32, device=device)
@@ -86,7 +84,9 @@ print("class IDs:", predicted_class_ids.tolist())
 print("superclass IDs:", predicted_superclass_ids.tolist())
 ```
 
-Set `subfolder` to `nano`, `tiny`, `small`, `base`, `large`, or `huge`. Omitting it loads the Huge checkpoint at the repository root. Inputs must be float tensors of shape `[N, 3, 32, 32]` in `[0, 1]`, matching `ToTensor` preprocessing. Do not apply ImageNet mean/std normalization. These checkpoints were trained for CIFAR-100; they are not validated for other datasets, resolutions, or image domains.
+For `load_pretrained`, pass `nano`, `tiny`, `small`, `base`, `large`, or `huge` as the first argument. With the direct class API, use the same name as `subfolder`; omitting `subfolder` loads the Huge checkpoint at the repository root. Inputs must be float tensors of shape `[N, 3, 32, 32]` in `[0, 1]`, matching `ToTensor` preprocessing. Do not apply ImageNet mean/std normalization. These checkpoints were trained for CIFAR-100; they are not validated for other datasets, resolutions, or image domains.
+
+For explicit control over the Hub repository, revision, token, or local checkpoint path, use the model class directly with `from_pretrained(..., subfolder="tiny")`. The variant-specific constructors such as `nesy_cvt_tiny()` create random-initialized models for training; they do not download weights. `load_pretrained("tiny")` is the pretrained inference shortcut.
 
 The model returns 100 fine-class logits in `output.logits`, 20 raw superclass scores in `output.concept_logits`, and, for taxonomy variants, a dictionary of neural and rule intermediates in `output.reasoning_trace`. Map predicted IDs to human-readable names using CIFAR-100's official fine and coarse label lists.
 
@@ -146,6 +146,7 @@ This release is intended for research and education on small-image classificatio
 - `pytorch_model.bin`: PyTorch state dictionary for the Huge root checkpoint.
 - `nano/`, `tiny/`, `small/`, `base/`, `large/`, `huge/`: variant configs, checkpoints, and run records.
 - `nesy_cvt/`: Python model implementation for direct source use.
+- `nesy_cvt.load_pretrained("tiny")`: short helper for selecting a pretrained variant.
 - `architecture_overview.svg`: vector architecture diagram.
 - `architecture_overview.png`: 1600-pixel-wide raster copy of the architecture diagram.
 - `benchmark/`: benchmark tables, raw report, and static Plotly-generated PNG figures.

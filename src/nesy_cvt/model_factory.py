@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from typing import TYPE_CHECKING
 
 from .config import NesyCVTConfig
+
+if TYPE_CHECKING:
+    from .model import NesyCVTForImageClassification
 
 MODEL_SIZE_PRESETS = {
     "nano": {"embed_dim": 64, "depths": (1, 1), "num_heads": 4},
@@ -105,6 +109,35 @@ def nesy_cvt_large(*, num_classes: int = 100, **config_overrides):
 def nesy_cvt_huge(*, num_classes: int = 100, **config_overrides):
     """Create a randomly initialized NeSy-CVT Huge CIFAR-100 classifier."""
     return create_model("huge", num_classes=num_classes, **config_overrides)
+
+
+def load_pretrained(
+    size: str = "tiny",
+    *,
+    repo_id: str = "evanmahmud/nesy-cvt",
+    device: str | None = None,
+    revision: str | None = None,
+    token: str | None = None,
+) -> NesyCVTForImageClassification:
+    """Load a trained Hub variant and return it in evaluation mode.
+
+    Use ``nesy_cvt_tiny()`` (or another size constructor) for random initialization.
+    """
+    if size not in MODEL_SIZE_PRESETS:
+        choices = ", ".join(MODEL_SIZE_PRESETS)
+        raise ValueError(f"Unknown pretrained size {size!r}; choose one of: {choices}")
+
+    from .model import NesyCVTForImageClassification
+
+    model = NesyCVTForImageClassification.from_pretrained(
+        repo_id,
+        revision=revision,
+        token=token,
+        subfolder=size,
+    )
+    if device is not None:
+        model = model.to(device)
+    return model.eval()
 
 
 def build_classifier(model_name: str, config: NesyCVTConfig):
