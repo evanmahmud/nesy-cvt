@@ -84,6 +84,16 @@ print("class IDs:", predicted_class_ids.tolist())
 print("superclass IDs:", predicted_superclass_ids.tolist())
 ```
 
+The original class-based API is still supported when you want to specify the repository and variant directly:
+
+```python
+from nesy_cvt import NesyCVTForImageClassification
+
+model = NesyCVTForImageClassification.from_pretrained(
+    "evanmahmud/nesy-cvt", subfolder="tiny"
+).to(device).eval()
+```
+
 For `load_pretrained`, pass `nano`, `tiny`, `small`, `base`, `large`, or `huge` as the first argument. With the direct class API, use the same name as `subfolder`; omitting `subfolder` loads the Huge checkpoint at the repository root. Inputs must be float tensors of shape `[N, 3, 32, 32]` in `[0, 1]`, matching `ToTensor` preprocessing. Do not apply ImageNet mean/std normalization. These checkpoints were trained for CIFAR-100; they are not validated for other datasets, resolutions, or image domains.
 
 For explicit control over the Hub repository, revision, token, or local checkpoint path, use the model class directly with `from_pretrained(..., subfolder="tiny")`. The variant-specific constructors such as `nesy_cvt_tiny()` create random-initialized models for training; they do not download weights. `load_pretrained("tiny")` is the pretrained inference shortcut.
