@@ -1,12 +1,12 @@
 # Architecture
 
-NeSy-CVT is an image-classification family combining convolutional processing, global attention, FFT-based channel mixing, a cosine classifier, and a semantic concept branch. The CIFAR-100 taxonomy mode adds explicit differentiable reasoning over the official fine-to-coarse label hierarchy. Claims about general reasoning, robustness, calibration, interpretability, and accuracy gains still require experiments.
+NeSy-CVT is an image-classification family combining convolutional processing, global attention, a complex spectral gate, a cosine classifier, and a supervised concept branch. The CIFAR-100 taxonomy mode adds differentiable score fusion using the official fine-to-coarse label hierarchy. Claims about general reasoning, robustness, calibration, interpretability, and accuracy gains still require experiments.
 
 ## Components
 
 The CNN stem maps images into dense feature maps. Depthwise residual blocks keep local texture and edge information while controlling parameter count.
 
-The FFT spectral mixer transforms feature maps into the frequency domain with `torch.fft.rfft2`, applies bounded learnable real and imaginary gates, and returns to the spatial domain with `torch.fft.irfft2`. New model configurations use a residual form that is the identity when the gates are zero. Older checkpoints without an explicit `spectral_mixer_mode` load in `legacy_double` mode to preserve their historical behavior.
+The complex spectral gate transforms feature maps into the frequency domain with `torch.fft.rfft2`, applies one bounded learnable complex gain per channel, shared across frequency coordinates, and returns to the spatial domain with `torch.fft.irfft2`. New model configurations return the gated inverse transform, which is the identity when the gates are zero. Older checkpoints without an explicit `spectral_mixer_mode` load in `legacy_double` mode to preserve their historical behavior. This operation does not learn an independent value for each Fourier frequency.
 
 The Transformer encoder flattens feature maps into tokens and applies multi-head self-attention. This gives the model global context after the CNN has already organized local evidence.
 
@@ -25,7 +25,7 @@ The cosine classifier normalizes image embeddings and learned class prototypes, 
 ## Data Flow
 
 ```text
-image -> CNN stem -> FFT spectral mixer -> Transformer tokens -> pooled features
+image -> CNN stem -> complex spectral gate -> Transformer tokens -> pooled features
                                                           ├── cosine prototype classifier -> neural fine logits ─┐
                                                           └── 20 semantic concepts -> CIFAR-100 taxonomy rules ──┴-> fused logits
 ```

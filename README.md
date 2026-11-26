@@ -8,7 +8,7 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Hugging Face model](https://img.shields.io/badge/Hugging%20Face-Model-FFD21E?logo=huggingface&logoColor=black)](https://huggingface.co/evanmahmud/nesy-cvt)
 
-**NeSy-CVT (Neuro-Symbolic Convolutional Vision Transformer)** is an experimental image-classification model family. The released CIFAR-100 taxonomy variants combine local convolutional features, Fourier-domain feature mixing, Transformer blocks, supervised superclass concepts, and a fixed fine-to-coarse rule layer.
+**NeSy-CVT (Neuro-Symbolic Convolutional Vision Transformer)** is an experimental image-classification model family. The released CIFAR-100 taxonomy variants combine local convolutional features, a per-channel complex spectral gate, Transformer blocks, supervised superclass concepts, and a fixed fine-to-coarse rule layer.
 
 | Resource | Link |
 |---|---|
@@ -16,9 +16,10 @@
 | Pretrained checkpoints and model card | [Hugging Face: evanmahmud/nesy-cvt](https://huggingface.co/evanmahmud/nesy-cvt) |
 | Benchmark protocol | [docs/benchmarking.md](docs/benchmarking.md) |
 | Full comparison table and plots | [CIFAR-100 benchmark artifacts](docs/benchmark/cifar100-taxonomy-family/) |
-| Manuscript outline | [docs/paper_draft.md](docs/paper_draft.md) |
+| Manuscript draft | [docs/paper_draft.md](docs/paper_draft.md) |
+| Paper architecture, model lineup, and SOTA experiment plan | [docs/paper_experiment_plan.md](docs/paper_experiment_plan.md) |
 
-> **Research status.** This is an early research release, not a state-of-the-art claim. The reported CIFAR-100 test set was inspected in prior exploratory runs, so these results are comparative and exploratory, not evidence from a pristine, untouched holdout. The method's symbolic rules encode only the supplied CIFAR-100 hierarchy; this does not establish general reasoning, interpretability, robustness, or transfer to other datasets.
+> **Research status.** This is an early research release, not a state-of-the-art claim. The research goal is to test a scoped CIFAR-100 SOTA claim with validated, current baselines and a locked evaluation protocol. The reported CIFAR-100 test set was inspected in prior exploratory runs, so existing results are exploratory rather than evidence from a pristine, untouched holdout. The method's symbolic rules encode only the supplied CIFAR-100 hierarchy; this does not establish general reasoning, human interpretability, robustness, or transfer to other datasets.
 
 ## Architecture
 
@@ -29,7 +30,7 @@
 The diagram shows the current explicit taxonomy mode. For the Tiny preset, the visual path is:
 
 1. **Convolutional stem:** a 3×3 convolution, batch normalization and GELU, followed by depthwise residual blocks for local features.
-2. **Spectral mixer:** a real 2-D FFT applies bounded, learned per-channel real and imaginary gates, then an inverse FFT returns the feature map. The gates initialize to zero, so this version begins as an identity operation.
+2. **Complex spectral gate:** a real 2-D FFT applies bounded, learned per-channel real and imaginary gains shared across frequency coordinates, then an inverse FFT returns the feature map. The gates initialize to zero, so this version begins as an identity operation.
 3. **Token encoder:** the spatial feature map is flattened into tokens and processed by pre-normalized Transformer blocks with multi-head self-attention and an MLP.
 4. **Image representation:** mean pooling over tokens followed by LayerNorm gives the image feature vector.
 5. **Two supervised heads:** a cosine-prototype classifier produces 100 fine-class logits, while a linear concept head predicts the 20 CIFAR-100 coarse superclasses.
