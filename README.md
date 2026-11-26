@@ -1,210 +1,221 @@
 # NeSy-CVT
 
-NeSy-CVT (Neuro-Symbolic Convolutional Vision Transformer) is a research model family for image classification. Its CIFAR-100 taxonomy mode combines convolutional and Transformer features with a 20-way semantic concept head and an explicit differentiable rule layer using the dataset's fine-to-coarse hierarchy. The legacy baseline and the currently exported Tiny checkpoint use a learned concept projection instead; their cards identify that distinction.
+**NeSy-CVT (Neuro-Symbolic Convolutional Vision Transformer)** is an experimental image-classification model family. The released CIFAR-100 taxonomy variants combine local convolutional features, Fourier-domain feature mixing, Transformer blocks, supervised superclass concepts, and a fixed fine-to-coarse rule layer.
 
-The taxonomy rule layer is specific to CIFAR-100 and only encodes its official fine-to-coarse hierarchy. It is not a general knowledge base. Interpretability, robustness, calibration, and accuracy improvements remain empirical questions. NeSy-CVT has not been shown to outperform all CNN or Transformer models, and no such claim is made.
+| Resource | Link |
+|---|---|
+| Source code | [GitHub: evanmahmud/nesy-cvt](https://github.com/evanmahmud/nesy-cvt) |
+| Pretrained checkpoints and model card | [Hugging Face: evanmahmud/nesy-cvt](https://huggingface.co/evanmahmud/nesy-cvt) |
+| Benchmark protocol | [docs/benchmarking.md](docs/benchmarking.md) |
+| Full comparison table and plots | [CIFAR-100 benchmark artifacts](docs/benchmark/cifar100-taxonomy-family/) |
+| Manuscript outline | [docs/paper_draft.md](docs/paper_draft.md) |
 
-## Current Pilot
-
-One CIFAR-100 run trained for 50 epochs on an RTX 5070 achieved 59.29% top-1, 85.40% top-5, and 0.591 macro F1 on the official test split. Training took 1:47:57, as measured by the user. This is a pilot result, not a controlled comparison: it used one seed, no validation split, and the test set was also evaluated after the 5-epoch run. Benchmark-pipeline smoke validation later exercised the test loader for one epoch on the corrected model and a ResNet baseline; those numbers are not research results. Treat CIFAR-100 test metrics as exploratory because the split has already been inspected. The pilot used the historical FFT residual behavior. New training defaults to a corrected identity-at-initialization FFT residual, so the pilot checkpoint and future runs are different model revisions.
+> **Research status.** This is an early research release, not a state-of-the-art claim. The reported CIFAR-100 test set was inspected in prior exploratory runs, so these results are comparative and exploratory, not evidence from a pristine, untouched holdout. The method's symbolic rules encode only the supplied CIFAR-100 hierarchy; this does not establish general reasoning, interpretability, robustness, or transfer to other datasets.
 
 ## Architecture
 
-NeSy-CVT has five parts:
+![NeSy-CVT taxonomy-mode architecture](docs/figures/architecture_overview.svg)
 
-1. CNN stem for edges, textures, and local image features.
-2. Transformer encoder for global relationships between image regions.
-3. FFT spectral mixer using complex-valued gates over frequency-domain features.
-4. Semantic concept branch: for CIFAR-100, predicts the 20 official coarse categories.
-5. Cosine prototype classifier using normalized class vectors.
-6. CIFAR-100 taxonomy reasoner: maps each fine class to its known superclass, adds the concept log-probability as a rule score, and trains a hierarchy consistency loss.
+[Download the architecture figure as PNG](docs/figures/architecture_overview.png).
 
-![NeSy-CVT architecture overview](docs/figures/architecture_overview.svg)
+The diagram shows the current explicit taxonomy mode. For the Tiny preset, the visual path is:
+
+1. **Convolutional stem:** a 3×3 convolution, batch normalization and GELU, followed by depthwise residual blocks for local features.
+2. **Spectral mixer:** a real 2-D FFT applies bounded, learned per-channel real and imaginary gates, then an inverse FFT returns the feature map. The gates initialize to zero, so this version begins as an identity operation.
+3. **Token encoder:** the spatial feature map is flattened into tokens and processed by pre-normalized Transformer blocks with multi-head self-attention and an MLP.
+4. **Image representation:** mean pooling over tokens followed by LayerNorm gives the image feature vector.
+5. **Two supervised heads:** a cosine-prototype classifier produces 100 fine-class logits, while a linear concept head predicts the 20 CIFAR-100 coarse superclasses.
+6. **Explicit rule fusion:** the fixed dataset mapping links each of the 100 fine classes to its known superclass. The corresponding concept log-probability is added to the fine-class score:
+
+   ```text
+   final_logit[c] = neural_logit[c] + 0.5 × log P(superclass(c) | image)
+   ```
+
+   The model can also return neural logits, superclass probabilities, rule scores, and the mapping as a reasoning trace.
+
+The taxonomy presets train with fine-label cross-entropy, coarse-concept cross-entropy, a hierarchy-consistency loss, and prototype/spectral regularizers. The released rule map is specific to CIFAR-100; it is not a general-purpose knowledge base. Older checkpoints may use a learned concept projection instead of these fixed rules. Check `reasoning_mode` in `config.json` before describing a checkpoint's reasoning method.
+
+## Model variants
+
+The Hub repository contains trained checkpoints for all six taxonomy presets. The root checkpoint is Huge for compatibility; use `subfolder` to select a size explicitly.
+
+| Variant | Width | Transformer blocks | Heads | Parameters (M) | Hub subfolder |
+|---|---:|---:|---:|---:|---|
+| Nano | 64 | 2 | 4 | 0.115 | `nano` |
+| Tiny | 96 | 4 | 4 | 0.483 | `tiny` |
+| Small | 128 | 6 | 4 | 1.264 | `small` |
+| Base | 192 | 8 | 6 | 3.746 | `base` |
+| Large | 256 | 12 | 8 | 9.930 | `large` |
+| Huge | 320 | 16 | 10 | 20.629 | `huge` or repository root |
+
+Parameter counts are properties of the current configurations. The released variant folder contains a checkpoint selected by validation top-1 for seed 42; the benchmark artifacts report aggregate metrics over seeds 42, 43, and 44. Presets created in Python without loading a checkpoint have random weights.
 
 ## Install
 
-Library-only install:
+Install a PyTorch build that matches your operating system and GPU by following the [official PyTorch installation selector](https://pytorch.org/get-started/locally/). Then install this package from GitHub and its Hub loader dependency:
 
-```bash
-pip install -e .
+```powershell
+python -m pip install "git+https://github.com/evanmahmud/nesy-cvt.git"
+python -m pip install "huggingface_hub>=0.30"
 ```
 
-Training install:
+For development, report generation, and training from source:
 
-```bash
-pip install -e ".[train,dev]"
+```powershell
+git clone https://github.com/evanmahmud/nesy-cvt.git
+Set-Location nesy-cvt
+python -m pip install -e ".[train,reports]"
 ```
 
-For an RTX 50-series GPU, install a CUDA-enabled PyTorch wheel (PyTorch 2.7 or newer) using the [official selector](https://pytorch.org/get-started/locally/) before installing the project extras. The project extras do not choose a CUDA wheel for you.
+The report extra includes Plotly Express, pandas, and Kaleido for interactive HTML charts and PNG export. Kaleido uses a local Chrome/Chromium browser for static image export.
 
-## Quickstart
+## Use a pretrained Hub checkpoint
 
-### Model sizes and Python API
-
-The public size presets are `nesy_cvt_nano`, `nesy_cvt_tiny`, `nesy_cvt_small`, `nesy_cvt_base`,
-`nesy_cvt_large`, and `nesy_cvt_huge`. They create **randomly initialized** CIFAR-100 models with
-the explicit taxonomy reasoner. Only a Tiny checkpoint is currently exported, and that older
-checkpoint uses supervised concepts with a learned projection; it does not contain the new explicit
-rule layer. Train and benchmark the taxonomy mode before presenting it as a trained improvement.
-
-- Nano: width 64, 2 Transformer blocks, 4 heads (~0.115M parameters).
-- Tiny: width 96, 4 Transformer blocks, 4 heads (~0.483M parameters).
-- Small: width 128, 6 Transformer blocks, 4 heads (~1.264M parameters).
-- Base: width 192, 8 Transformer blocks, 6 heads (~3.746M parameters).
-- Large: width 256, 12 Transformer blocks, 8 heads (~9.930M parameters).
-- Huge: width 320, 16 Transformer blocks, 10 heads (~20.629M parameters).
+Load a selected variant using its Hub folder name:
 
 ```python
 import torch
-from nesy_cvt import nesy_cvt_tiny
+from nesy_cvt import NesyCVTForImageClassification
 
-model = nesy_cvt_tiny(num_classes=100).eval()  # new, untrained model
-images = torch.randn(2, 3, 32, 32)
+device = "cuda" if torch.cuda.is_available() else "cpu"
+model = NesyCVTForImageClassification.from_pretrained(
+    "evanmahmud/nesy-cvt",
+    subfolder="tiny",  # nano, tiny, small, base, large, or huge
+).to(device).eval()
+
+# Supply a batch of RGB images as float tensors with shape [N, 3, 32, 32]
+# and values in [0, 1]. This example uses random pixels for an inference smoke check.
+images = torch.rand(2, 3, 32, 32, device=device)
 with torch.inference_mode():
     output = model(images)
-    predicted_class_ids = output.logits.argmax(dim=-1)
-    predicted_superclasses = output.reasoning_trace["concept_probabilities"].argmax(dim=-1)
+
+print("logits:", tuple(output.logits.shape))
+print("predicted class IDs:", output.logits.argmax(dim=-1).tolist())
+print("predicted superclass IDs:",
+      output.reasoning_trace["concept_probabilities"].argmax(dim=-1).tolist())
 ```
 
-Load the trained Tiny checkpoint from the exported folder:
+For the root Huge checkpoint, omit `subfolder="tiny"`. For actual images, resize to 32×32 and convert RGB pixels to float tensors in `[0, 1]` using the same `ToTensor` preprocessing as training; do not apply ImageNet mean/std normalization. Use the CIFAR-100 fine-label map to convert class IDs to names. The model is trained for 32×32 CIFAR-100 images and is not validated for arbitrary image sizes or domains.
+
+`output.logits` contains fine-class scores. In taxonomy mode, `output.reasoning_trace` contains the neural scores, concept probabilities, per-class rule scores, and the fine-to-coarse mapping. `output.concept_logits` contains the raw 20 concept scores.
+
+### Create an untrained architecture
+
+The package also exposes size constructors. They create new random-weight models; they do not download the released checkpoint.
 
 ```python
-from nesy_cvt import NesyCVTForImageClassification
+from nesy_cvt import nesy_cvt_nano, nesy_cvt_tiny, nesy_cvt_small
+from nesy_cvt import nesy_cvt_base, nesy_cvt_large, nesy_cvt_huge
 
-model = NesyCVTForImageClassification.from_pretrained("hf_export/nesy-cvt").eval()
+model = nesy_cvt_tiny(num_classes=100)  # random initialization
 ```
 
-After the model is uploaded, the same loader accepts its Hub ID (install `pip install -e ".[hub]"`):
+The explicit fixed taxonomy mode requires 100 CIFAR-100 fine classes and 20 coarse concepts. A different class count requires a compatible learned-projection configuration and suitable training data; the released CIFAR-100 checkpoints are not generic classifiers.
 
-```python
-model = NesyCVTForImageClassification.from_pretrained("YOUR_HF_USERNAME/nesy-cvt").eval()
+## Test the model
+
+Run a short Hub loading and forward-pass check:
+
+```powershell
+python -c "import torch; from nesy_cvt import NesyCVTForImageClassification; m=NesyCVTForImageClassification.from_pretrained('evanmahmud/nesy-cvt', subfolder='tiny').eval(); x=torch.rand(2,3,32,32); y=m(x); print('logits:', tuple(y.logits.shape)); print('reasoning trace:', sorted(y.reasoning_trace))"
 ```
 
-The model takes float `NCHW` image tensors in the `[0, 1]` range and returns an output object; class
-scores are in `output.logits`. The current trained weights are for 32×32 CIFAR-100 images and were
-trained without mean/std normalization, so use that same preprocessing and the CIFAR-100 label map
-when evaluating them. A new constructor has random weights; use `from_pretrained` to load trained
-weights. For another number of classes, use the learned-projection mode explicitly, for example
-`nesy_cvt_tiny(num_classes=10, reasoning_mode="learned_projection")`; the fixed CIFAR-100 taxonomy
-reasoner only applies to CIFAR-100's 100 fine labels and 20 coarse concepts.
+This verifies checkpoint download, model construction, and output shapes. It is not an accuracy measurement. To evaluate a local checkpoint on CIFAR-100 with the project's command line, install the training extras and use:
 
-Train a taxonomy-reasoning size preset with the CLI (Tiny is the default):
-
-```bash
-nesy-cvt train --model-size tiny --dataset cifar100 --data-dir data --download --epochs 50 --batch-size 16 --device cuda --output-dir runs/nesy-cvt-tiny-cifar100
+```powershell
+nesy-cvt eval `
+  --device cuda `
+  --dataset cifar100 `
+  --data-dir data `
+  --download `
+  --batch-size 16 `
+  --checkpoint-dir runs/cifar100-taxonomy-family/nesy_cvt_tiny/seed-42 `
+  --output-path results/nesy-cvt-tiny-seed42-eval.json
 ```
 
-Use `nano`, `small`, `base`, `large`, or `huge` for the other presets. This basic `train` command
-does not perform validation-based checkpoint selection; use `benchmark` for controlled comparisons.
-Large variants require more GPU memory and training time. All six presets are new configurations,
-not pretrained weights.
+Evaluation on the previously inspected CIFAR-100 test split should be labeled exploratory. Use validation data during development, and collect new independent data for confirmatory claims.
 
-### Hugging Face variant layout
+## Benchmark results
 
-Use one model repository named `OWNER/nesy-cvt`. Keep the currently released checkpoint at the
-repository root; put additional trained checkpoints in folders named for their size, such as
-`base/` or `large/`. Export each variant after training, then upload the whole family folder. For
-example:
+The published comparison covers 13 trained model configurations, including all six NeSy-CVT taxonomy sizes and CNN/Transformer references. Each model used the same 45,000/5,000 stratified CIFAR-100 train/validation split, 32×32 inputs, three seeds (42, 43, 44), 50 epochs, batch size 16, and the same official 10,000-image test examples. Checkpoint selection used validation top-1. The earlier exploratory runs inspected that test set, so this matched comparison is not a pristine holdout study.
 
-```bash
-nesy-cvt export --checkpoint-dir runs/cifar100-final-benchmark/nesy_cvt_base/seed-42 --output-dir hf_export/nesy-cvt/base --model-name "NeSy-CVT Base" --results-path results/cifar100-final-benchmark.json
-nesy-cvt push-hf --repo-id OWNER/nesy-cvt --local-dir hf_export/nesy-cvt
+The full table includes accuracy, top-5, macro precision, macro recall, macro F1, macro one-vs-rest AUC, parameter count, estimated FLOPs, checkpoint size, batch-1 latency, batched FPS, peak allocated GPU memory, and training time. It reports mean and sample standard deviation across seeds:
+
+- [Full comparative Markdown table](docs/benchmark/cifar100-taxonomy-family/comparison_table.md)
+- [CSV table](docs/benchmark/cifar100-taxonomy-family/comparison_table.csv)
+- [Seed-level evaluation report and test-set fingerprint](docs/benchmark/cifar100-taxonomy-family/cifar100-taxonomy-detailed.json)
+- [Interactive Plotly Express dashboard](docs/benchmark/cifar100-taxonomy-family/benchmark_dashboard.html) (download and open in a browser)
+- [Benchmark methodology and metric definitions](docs/benchmarking.md)
+
+### Accuracy and classification metrics
+
+![CIFAR-100 quality metrics across models](docs/benchmark/cifar100-taxonomy-family/quality_metrics.png)
+
+### Accuracy and compute cost
+
+![Top-1 accuracy versus estimated FLOPs](docs/benchmark/cifar100-taxonomy-family/flops.png)
+
+### Accuracy and inference latency
+
+![Top-1 accuracy versus batch-1 inference latency](docs/benchmark/cifar100-taxonomy-family/latency.png)
+
+All figures were generated with Plotly Express. Interactive HTML versions support hover and legend filtering; PNGs provide static copies for papers and slides. FLOPs are documented analytical estimates per image, not hardware instruction counts. Latency is batch-1 model execution on the GPU and excludes data transfer; FPS is batched model-only throughput at batch size 16.
+
+On this roster, NeSy-CVT Huge had the highest observed mean top-1 (69.58% ± 0.44), at 20.63M parameters and 63.5 estimated GFLOPs per image. DenseNet-121 achieved 68.13% ± 0.43 with 7.05M parameters and 1.777 estimated GFLOPs per image. These results illustrate a compute/accuracy trade-off under the stated recipe; they do not show that NeSy-CVT is generally superior. Several reference architectures may benefit from architecture-specific hyperparameter tuning, which this fixed-recipe comparison did not perform.
+
+## Reproduce the controlled training protocol
+
+From a source checkout with training dependencies and CIFAR-100 available, a validation-only comparison can be run with:
+
+```powershell
+python -m nesy_cvt benchmark `
+  --device cuda --download --epochs 50 --batch-size 16 `
+  --seeds 42 43 44 `
+  --models nesy_cvt_nano nesy_cvt_tiny nesy_cvt_small nesy_cvt_base nesy_cvt_large nesy_cvt_huge `
+    resnet18_cifar mobilenet_v3_small densenet121_cifar convnext_tiny_cifar swin_t_cifar vit_tiny_patch4 `
+  --validation-only `
+  --runs-dir runs/cifar100-reproduction `
+  --report results/cifar100-reproduction.json
 ```
 
-After that checkpoint is present in the Hub repository, load it with:
+The 13-model, three-seed, 50-epoch run is compute-intensive. The existing benchmark artifacts are already included in the repository, so you do not need to retrain to view them. To regenerate the report from saved checkpoints:
 
-```python
-from nesy_cvt import NesyCVTForImageClassification
+```powershell
+python -m nesy_cvt benchmark-eval `
+  --device cuda --batch-size 16 `
+  --runs-dir runs/cifar100-taxonomy-family `
+  --data-dir data `
+  --report results/cifar100-taxonomy-detailed.json
 
-model = NesyCVTForImageClassification.from_pretrained(
-    "OWNER/nesy-cvt", subfolder="base"
-)
+python -m nesy_cvt benchmark-report `
+  --input results/cifar100-taxonomy-detailed.json `
+  --output-dir results/cifar100-taxonomy-detailed-report
 ```
 
-Replace `base` with `nano`, `tiny`, `small`, `large`, or `huge`. A Hub folder only has pretrained
-weights after you export and upload a trained checkpoint there; the constructor alone creates
-random weights. Keep each size's `config.json` beside its matching checkpoint.
+The first command evaluates saved checkpoints and does not retrain; it will access the official CIFAR-100 test set. The second command writes CSV/Markdown, individual interactive Plotly HTML figures, a self-contained dashboard, and high-resolution PNG figures. Full protocol, metric definitions, timing boundaries, and FLOPs assumptions are in [docs/benchmarking.md](docs/benchmarking.md).
 
-To compare one taxonomy variant against the existing controls without touching the official test
-split, run a validation-only benchmark first:
+## Limitations and research use
 
-```bash
-nesy-cvt benchmark --models nesy_cvt_tiny resnet18_cifar mobilenet_v3_small densenet121_cifar convnext_tiny_cifar swin_t_cifar vit_tiny_patch4 --seeds 42 43 44 --epochs 50 --batch-size 16 --device cuda --validation-only --download --runs-dir runs/tiny-taxonomy-validation --report results/tiny-taxonomy-validation.json
+- The explicit symbolic mapping is the CIFAR-100 fine-to-coarse taxonomy. It is fixed prior knowledge and cannot establish general-purpose reasoning.
+- The CIFAR-100 official test set has prior exploratory exposure within this project. The results are exploratory even though all models in the comparison share the same examples.
+- The comparison fixes one training recipe across different architectures. Equal settings improve protocol consistency but do not guarantee that every model is optimally tuned.
+- FLOPs are estimated analytically; report them as estimates. Throughput and latency depend on the RTX 5070 software stack, precision, batch size, and implementation.
+- Evidence from CIFAR-100 does not establish performance on other datasets, resolutions, robustness shifts, calibration settings, or real-world applications.
+- Review the manuscript outline and complete a related-work and novelty assessment before making research-priority claims or submitting a paper.
+
+## Citation
+
+This repository is an experimental preprint-stage project and has no archival paper citation yet. If you use the code or checkpoints, cite the repository and its exact revision, and include the model configuration, data protocol, checkpoint, and evaluation split in your report.
+
+```bibtex
+@software{mahmud_nesy_cvt,
+  author  = {Mahmud, Evan},
+  title   = {NeSy-CVT: Neuro-Symbolic Convolutional Vision Transformer},
+  url     = {https://github.com/evanmahmud/nesy-cvt},
+  note    = {Experimental research software; cite the exact commit used}
+}
 ```
 
-Rule fusion and consistency-loss weights are adjustable with `--taxonomy-rule-weight` and
-`--taxonomy-consistency-weight`. Defaults 0.5 and 0.1 are unvalidated starting values; select them on
-validation only. Set one to `0` to measure the matching ablation.
+## License
 
-Export a checkpoint and its code/model card into a Hugging Face-ready folder:
-
-```bash
-nesy-cvt export --checkpoint-dir runs/cifar100-final-benchmark/nesy_cvt_coarse_concepts/seed-44 --output-dir hf_export/nesy-cvt
-```
-
-Run a short benchmark-pipeline smoke check (not scientific results):
-
-```bash
-nesy-cvt benchmark --models nesy_cvt resnet18_cifar --seeds 42 --epochs 1 --device cuda --download --validation-only --runs-dir runs/benchmark-smoke --report runs/benchmark-smoke.json
-```
-
-Check v0.2 coarse-concept supervision without evaluating the CIFAR-100 test split:
-
-```bash
-nesy-cvt benchmark --models nesy_cvt_coarse_concepts --seeds 42 --epochs 1 --device cuda --validation-only --runs-dir runs/cifar100-v02-validation --report results/cifar100-v02-validation.json
-```
-
-Run a small synthetic training smoke test after installing PyTorch:
-
-```bash
-nesy-cvt train --device auto --epochs 1 --synthetic-samples 256 --output-dir runs/nesy-cvt-tiny
-nesy-cvt eval --device auto --checkpoint-dir runs/nesy-cvt-tiny
-```
-
-`--device auto` uses CUDA when PyTorch can access an NVIDIA GPU, otherwise CPU. Set
-`--device cuda` to require CUDA or `--device cpu` to force CPU execution.
-
-Run the full controlled CIFAR-100 comparison (four models, three seeds, 50 epochs per run):
-
-```bash
-nesy-cvt benchmark --device cuda --download --epochs 50 --batch-size 16 --seeds 42 43 44 --models nesy_cvt resnet18_cifar mobilenet_v3_small vit_tiny_patch4 --runs-dir runs/cifar100-comparison --report results/cifar100-comparison.json
-```
-
-The comparison uses a fixed, stratified 45,000/5,000 train/validation split, selects each run's checkpoint by validation top-1, then evaluates the official 10,000-image test set. Add the `nesy_cvt_no_*` and `nesy_cvt_linear_classifier` variants in a separate invocation for ablations. On the RTX 5070, the first model/seed run took about 1 hour 49 minutes; budget roughly a day for all 12 runs. Use `python -m nesy_cvt.resume_comparison` to keep completed runs and restart an interrupted seed from epoch 1.
-
-Evaluate one trained checkpoint on the CIFAR-100 test split:
-
-```bash
-nesy-cvt eval --device cuda --dataset cifar100 --data-dir data --batch-size 16 --checkpoint-dir runs/cifar100-comparison/nesy_cvt/seed-42 --output-path results/nesy-cvt-seed42-test.json
-```
-
-## Benchmarking
-
-“Top of all CNN and Transformer models” is not a measurable finite benchmark claim. Define a
-dataset, input resolution, allowed training data/pretraining, compute budget, and a fixed set of
-strong baselines first. The existing CIFAR-100 report is a limited controlled comparison, and its
-test split has already been inspected. Do not turn it into a universal ranking or a confirmatory
-paper claim.
-
-Use two tables:
-
-- Controlled benchmark: rerun NeSy-CVT and baselines with the same code, data, hardware, seeds, and image resolution.
-- Literature SOTA reference: report published leaderboard numbers separately and mark them as not rerun.
-
-Controlled baselines and ablations implemented by the benchmark command:
-
-- CIFAR-stem ResNet-18
-- MobileNetV3-Small
-- small ViT with 4x4 patches
-- NeSy-CVT without FFT, Transformer, or concept auxiliary branch
-- NeSy-CVT with a linear classifier instead of cosine prototypes
-
-## Publishing Order
-
-1. GitHub for code, docs, and scripts.
-2. Hugging Face Model Hub for model weights and model card.
-3. PyPI for the Python library only.
-4. arXiv after real experiments exist.
-5. A top venue such as NeurIPS, CVPR, ICLR, ICCV, ECCV, ICML, or TMLR.
-
-Check anonymity and dual-submission rules before public release around conference deadlines.
+The source code and released checkpoints are provided under the [Apache License 2.0](LICENSE). Dataset use remains subject to the CIFAR-100 dataset's terms.

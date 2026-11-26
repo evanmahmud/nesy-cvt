@@ -1,90 +1,126 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1410" height="820" viewBox="0 0 1410 820" role="img" aria-labelledby="title desc">
-  <title id="title">NeSy-CVT neuro-symbolic AI architecture</title>
-  <desc id="desc">Neuro-symbolic image classification: a convolutional stem, Fourier feature mixer, and Transformer encoder feed neural fine-class and supervised superclass heads. A differentiable CIFAR-100 taxonomy reasoner applies explicit fixed fine-to-coarse rules and hierarchy consistency.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1110" viewBox="0 0 1600 1110" role="img" aria-labelledby="title desc">
+  <title id="title">NeSy-CVT CIFAR-100 taxonomy architecture</title>
+  <desc id="desc">A convolutional and spectral feature extractor feeds Transformer blocks. Neural fine-class and supervised coarse-concept heads are fused by an explicit CIFAR-100 fine-to-coarse taxonomy. Dashed arrows indicate training supervision.</desc>
   <defs>
-    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
-    </marker>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#52657a"/></marker>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#1769aa"/></marker>
+    <marker id="arrowTeal" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#087f8c"/></marker>
     <style>
-      .title { font: 700 27px Arial, sans-serif; fill: #0f172a; }
-      .subtitle { font: 15px Arial, sans-serif; fill: #475569; }
-      .label { font: 700 16px Arial, sans-serif; fill: #0f172a; }
-      .body { font: 14px Arial, sans-serif; fill: #334155; }
-      .small { font: 13px Arial, sans-serif; fill: #475569; }
-      .node { stroke: #64748b; stroke-width: 1.6; rx: 14; }
-      .edge { stroke: #475569; stroke-width: 2.2; fill: none; marker-end: url(#arrow); }
-      .training-edge { stroke: #7c3aed; stroke-width: 1.8; stroke-dasharray: 7 6; fill: none; marker-end: url(#arrow); }
+      text { font-family: Inter, "Segoe UI", Arial, sans-serif; fill: #172b4d; }
+      .title { font-size: 34px; font-weight: 700; letter-spacing: -0.5px; }
+      .subtitle { font-size: 17px; fill: #52657a; }
+      .section { font-size: 14px; font-weight: 700; letter-spacing: 1.3px; fill: #52657a; }
+      .number { font-size: 13px; font-weight: 700; fill: #fff; }
+      .head { font-size: 18px; font-weight: 700; }
+      .body { font-size: 14px; fill: #34465c; }
+      .small { font-size: 12px; fill: #52657a; }
+      .math { font-size: 17px; font-weight: 600; fill: #172b4d; }
+      .card { stroke: #d6e0ea; stroke-width: 1.5; rx: 14; }
+      .edge { fill: none; stroke: #52657a; stroke-width: 2.4; marker-end: url(#arrow); }
+      .blue-edge { fill: none; stroke: #1769aa; stroke-width: 2.5; marker-end: url(#arrowBlue); }
+      .teal-edge { fill: none; stroke: #087f8c; stroke-width: 2.5; marker-end: url(#arrowTeal); }
+      .supervision { fill: none; stroke: #7c5bb8; stroke-width: 2; stroke-dasharray: 8 7; marker-end: url(#arrow); }
     </style>
   </defs>
-  <rect width="1410" height="700" fill="#ffffff"/>
-  <text x="42" y="48" class="title">NeSy-CVT: Neuro-Symbolic Convolutional Vision Transformer</text>
-  <text x="42" y="76" class="subtitle">Neural visual features and learned concepts combined with explicit CIFAR-100 hierarchy rules</text>
+  <rect width="1600" height="1110" fill="#f7f9fc"/>
+  <text x="64" y="62" class="title">NeSy-CVT: a taxonomy-grounded neuro-symbolic image classifier</text>
+  <text x="64" y="94" class="subtitle">CIFAR-100 fine classes are predicted from visual evidence and supervised superclass concepts, joined by explicit dataset rules.</text>
 
-  <rect x="35" y="145" width="145" height="112" class="node" fill="#f8fafc"/>
-  <text x="107.5" y="184" text-anchor="middle" class="label">Input image</text>
-  <text x="107.5" y="211" text-anchor="middle" class="body">32 × 32 × 3</text>
-  <text x="107.5" y="235" text-anchor="middle" class="small">RGB pixels</text>
+  <text x="64" y="146" class="section">1 · VISUAL FEATURE EXTRACTION</text>
+  <rect x="64" y="166" width="1472" height="240" rx="20" fill="#ffffff" stroke="#d6e0ea" stroke-width="1.5"/>
+  <g>
+    <rect x="82" y="218" width="172" height="130" class="card" fill="#f1f5f9"/>
+    <circle cx="106" cy="242" r="14" fill="#64748b"/><text x="106" y="247" text-anchor="middle" class="number">1</text>
+    <text x="168" y="258" text-anchor="middle" class="head">Input</text>
+    <text x="168" y="290" text-anchor="middle" class="body">RGB · 32 × 32</text>
+    <text x="168" y="316" text-anchor="middle" class="small">tensor values in [0, 1]</text>
 
-  <path d="M180 201 H218" class="edge"/>
-  <rect x="225" y="145" width="180" height="112" class="node" fill="#dbeafe"/>
-  <text x="315" y="178" text-anchor="middle" class="label">CNN stem</text>
-  <text x="315" y="204" text-anchor="middle" class="body">3×3 convolution</text>
-  <text x="315" y="228" text-anchor="middle" class="body">2 depthwise residual blocks</text>
-  <text x="315" y="248" text-anchor="middle" class="small">96-channel feature map</text>
+    <path d="M254 283 H282" class="edge"/>
+    <rect x="292" y="218" width="210" height="130" class="card" fill="#eaf2ff"/>
+    <circle cx="316" cy="242" r="14" fill="#1769aa"/><text x="316" y="247" text-anchor="middle" class="number">2</text>
+    <text x="397" y="258" text-anchor="middle" class="head">CNN stem</text>
+    <text x="397" y="290" text-anchor="middle" class="body">3 × 3 convolution</text>
+    <text x="397" y="316" text-anchor="middle" class="small">depthwise residual blocks</text>
+    <text x="397" y="336" text-anchor="middle" class="small">local visual features</text>
 
-  <path d="M405 201 H438" class="edge"/>
-  <rect x="445" y="145" width="190" height="112" class="node" fill="#ede9fe"/>
-  <text x="540" y="178" text-anchor="middle" class="label">Spectral mixer</text>
-  <text x="540" y="204" text-anchor="middle" class="body">rFFT2 → gated spectrum</text>
-  <text x="540" y="228" text-anchor="middle" class="body">→ irFFT2</text>
-  <text x="540" y="248" text-anchor="middle" class="small">zero gates initialize to identity</text>
+    <path d="M502 283 H530" class="edge"/>
+    <rect x="540" y="218" width="210" height="130" class="card" fill="#f1edff"/>
+    <circle cx="564" cy="242" r="14" fill="#7052a3"/><text x="564" y="247" text-anchor="middle" class="number">3</text>
+    <text x="645" y="258" text-anchor="middle" class="head">Spectral mixer</text>
+    <text x="645" y="290" text-anchor="middle" class="body">rFFT → gated spectrum</text>
+    <text x="645" y="316" text-anchor="middle" class="small">inverse rFFT; real / imaginary</text>
+    <text x="645" y="336" text-anchor="middle" class="small">gates start at zero (identity)</text>
 
-  <path d="M635 201 H668" class="edge"/>
-  <rect x="675" y="145" width="165" height="112" class="node" fill="#f1f5f9"/>
-  <text x="757.5" y="184" text-anchor="middle" class="label">Tokenize</text>
-  <text x="757.5" y="211" text-anchor="middle" class="body">flatten spatial map</text>
-  <text x="757.5" y="235" text-anchor="middle" class="small">1024 tokens × 96</text>
+    <path d="M750 283 H778" class="edge"/>
+    <rect x="788" y="218" width="190" height="130" class="card" fill="#ecf6f4"/>
+    <circle cx="812" cy="242" r="14" fill="#087f8c"/><text x="812" y="247" text-anchor="middle" class="number">4</text>
+    <text x="883" y="258" text-anchor="middle" class="head">Tokenize</text>
+    <text x="883" y="290" text-anchor="middle" class="body">spatial map → tokens</text>
+    <text x="883" y="316" text-anchor="middle" class="small">one token per spatial cell</text>
+    <text x="883" y="336" text-anchor="middle" class="small">Tiny: 1,024 × 96</text>
 
-  <path d="M840 201 H868" class="edge"/>
-  <rect x="875" y="145" width="180" height="112" class="node" fill="#dcfce7"/>
-  <text x="965" y="184" text-anchor="middle" class="label">Transformer</text>
-  <text x="965" y="211" text-anchor="middle" class="body">4 blocks, 4 heads</text>
-  <text x="965" y="235" text-anchor="middle" class="small">global token interactions</text>
+    <path d="M978 283 H1006" class="edge"/>
+    <rect x="1016" y="218" width="245" height="130" class="card" fill="#e8f5ee"/>
+    <circle cx="1040" cy="242" r="14" fill="#28845d"/><text x="1040" y="247" text-anchor="middle" class="number">5</text>
+    <text x="1138" y="258" text-anchor="middle" class="head">Transformer encoder</text>
+    <text x="1138" y="290" text-anchor="middle" class="body">pre-norm self-attention + MLP</text>
+    <text x="1138" y="316" text-anchor="middle" class="small">Tiny: 4 blocks · 4 heads</text>
+    <text x="1138" y="336" text-anchor="middle" class="small">depth / width depend on preset</text>
 
-  <path d="M1055 201 H1083" class="edge"/>
-  <rect x="1090" y="145" width="180" height="112" class="node" fill="#e0f2fe"/>
-  <text x="1180" y="184" text-anchor="middle" class="label">Feature vector</text>
-  <text x="1180" y="211" text-anchor="middle" class="body">mean pool + LayerNorm</text>
-  <text x="1180" y="235" text-anchor="middle" class="small">96 dimensions</text>
+    <path d="M1261 283 H1289" class="edge"/>
+    <rect x="1299" y="218" width="215" height="130" class="card" fill="#e7f4fb"/>
+    <circle cx="1323" cy="242" r="14" fill="#1680a5"/><text x="1323" y="247" text-anchor="middle" class="number">6</text>
+    <text x="1406" y="258" text-anchor="middle" class="head">Image feature</text>
+    <text x="1406" y="290" text-anchor="middle" class="body">mean token pooling</text>
+    <text x="1406" y="316" text-anchor="middle" class="small">LayerNorm → feature vector</text>
+    <text x="1406" y="336" text-anchor="middle" class="small">Tiny: 96 dimensions</text>
+  </g>
 
-  <path d="M1180 257 V300 H665 V340" class="edge"/>
-  <path d="M1180 300 H1110 V340" class="training-edge"/>
+  <path d="M1406 348 V440 H430 V484" class="blue-edge"/>
+  <path d="M1406 440 H1170 V484" class="teal-edge"/>
 
-  <rect x="405" y="348" width="520" height="130" class="node" fill="#ffedd5"/>
-  <text x="665" y="381" text-anchor="middle" class="label">Neural fine-class head</text>
-  <text x="665" y="408" text-anchor="middle" class="body">normalize feature and learned class prototypes</text>
-  <text x="665" y="432" text-anchor="middle" class="body">scaled cosine similarities → 100 fine-class logits</text>
-  <text x="665" y="459" text-anchor="middle" class="small">neural evidence for each CIFAR-100 class</text>
+  <text x="64" y="462" class="section">2 · NEURAL PREDICTION HEADS</text>
+  <rect x="90" y="484" width="680" height="168" class="card" fill="#eaf2ff"/>
+  <text x="122" y="520" class="head">A · Fine-class neural evidence</text>
+  <text x="122" y="553" class="body">Cosine-prototype classifier: normalized features × normalized class prototypes.</text>
+  <text x="122" y="581" class="body">Learned, clamped scale produces 100 neural logits, one for each fine class.</text>
+  <text x="122" y="619" class="small">Output: z<tspan baseline-shift="sub">neural</tspan> ∈ ℝ<tspan baseline-shift="super">100</tspan> · trained with fine-label cross-entropy</text>
 
-  <rect x="950" y="348" width="320" height="130" class="node" fill="#f5f3ff" stroke-dasharray="7 5"/>
-  <text x="1110" y="381" text-anchor="middle" class="label">Semantic concept head</text>
-  <text x="1110" y="408" text-anchor="middle" class="body">96 → 20 superclass logits</text>
-  <text x="1110" y="432" text-anchor="middle" class="body">supervised by CIFAR-100 coarse labels</text>
-  <text x="1110" y="459" text-anchor="middle" class="small">concept probabilities enter the rule layer</text>
+  <rect x="830" y="484" width="680" height="168" class="card" fill="#e7f5f3"/>
+  <text x="862" y="520" class="head">B · Supervised semantic concepts</text>
+  <text x="862" y="553" class="body">Linear concept head maps the pooled feature to 20 CIFAR-100 superclass logits.</text>
+  <text x="862" y="581" class="body">Softmax gives the probability of each coarse concept for this image.</text>
+  <text x="862" y="619" class="small">Output: p<tspan baseline-shift="sub">concept</tspan> ∈ ℝ<tspan baseline-shift="super">20</tspan> · trained with coarse-label supervision</text>
 
-  <path d="M665 478 V515 H760 V535" class="edge"/>
-  <path d="M1110 478 V515 H1000 V535" class="edge"/>
-  <rect x="405" y="540" width="865" height="112" class="node" fill="#fef3c7"/>
-  <text x="837.5" y="571" text-anchor="middle" class="label">Neuro-Symbolic AI reasoner: differentiable CIFAR-100 taxonomy</text>
-  <text x="837.5" y="599" text-anchor="middle" class="body">neural fine-class scores + learned superclass concepts + fixed fine-to-coarse rules</text>
-  <text x="837.5" y="627" text-anchor="middle" class="small">fuses 100-class logits; symbolic rules are explicit and specific to CIFAR-100</text>
+  <path d="M430 652 V680 H550 V770 H570" class="blue-edge"/>
+  <path d="M1170 652 V680 H1552 V770 H1536" class="teal-edge"/>
 
-  <path d="M837 652 V682" class="training-edge"/>
-  <rect x="405" y="690" width="865" height="70" class="node" fill="#f8fafc"/>
-  <text x="837.5" y="719" text-anchor="middle" class="label">Training objective</text>
-  <text x="837.5" y="744" text-anchor="middle" class="body">fine classification + coarse concept supervision + hierarchy consistency + prototype/spectral losses</text>
+  <rect x="64" y="700" width="450" height="176" rx="16" fill="#fff7e8" stroke="#e7c987" stroke-width="1.5"/>
+  <text x="90" y="735" class="head">Fixed CIFAR-100 knowledge</text>
+  <text x="90" y="768" class="body">Official fine → coarse label mapping</text>
+  <text x="90" y="796" class="body">100 fine classes · 20 superclasses</text>
+  <text x="90" y="833" class="small">One explicit superclass rule for each fine class</text>
 
-  <line x1="42" y1="785" x2="90" y2="785" class="training-edge"/>
-  <text x="102" y="790" class="small">Supervision / consistency losses</text>
-  <text x="340" y="790" class="small">Legacy checkpoints may use a learned projection; check reasoning_mode in config.json.</text>
+  <path d="M514 790 H570" class="edge"/>
+  <rect x="570" y="714" width="966" height="190" rx="18" fill="#fff0dc" stroke="#e4b76d" stroke-width="2"/>
+  <circle cx="605" cy="750" r="16" fill="#bd6c12"/><text x="605" y="755" text-anchor="middle" class="number">7</text>
+  <text x="637" y="756" class="head">Neuro-symbolic fusion · explicit, differentiable taxonomy rules</text>
+  <text x="610" y="797" class="math">z<tspan baseline-shift="sub">final, c</tspan> = z<tspan baseline-shift="sub">neural, c</tspan> + λ log p<tspan baseline-shift="sub">concept, superclass(c)</tspan></text>
+  <text x="610" y="831" class="body">The known hierarchy links each fine-class score to its mapped superclass probability.</text>
+  <text x="610" y="866" class="small">λ = 0.5 in the released configs · fixed CIFAR-100 taxonomy only; not a general-purpose rule engine</text>
+
+  <path d="M1040 904 V936" class="edge"/>
+  <rect x="570" y="944" width="966" height="104" rx="16" fill="#edf4fb" stroke="#c6d5e3" stroke-width="1.5"/>
+  <text x="602" y="978" class="head">Inference outputs</text>
+  <text x="602" y="1012" class="body">100 fine-class logits / predicted label · optional trace: neural logits, concept probabilities, rule scores, mapping</text>
+
+  <path d="M230 652 V684 H42 V988 H64" class="supervision"/>
+  <rect x="64" y="928" width="450" height="120" rx="16" fill="#f1edfa" stroke="#d8cdec" stroke-width="1.5"/>
+  <text x="90" y="965" class="head">Training objective</text>
+  <text x="90" y="995" class="body">Fine CE + 0.1 coarse CE</text>
+  <text x="90" y="1021" class="small">+ 0.1 hierarchy MSE + prototype / spectral terms</text>
+
+  <line x1="64" y1="1074" x2="118" y2="1074" class="supervision"/>
+  <text x="132" y="1079" class="small">Dashed path: label supervision and training losses</text>
+  <text x="620" y="1079" class="small">Legacy learned-projection checkpoints have a different reasoning mode; check config.json.</text>
 </svg>

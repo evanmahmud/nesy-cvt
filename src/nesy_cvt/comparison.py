@@ -16,8 +16,15 @@ from typing import Any
 
 from .benchmark import save_metrics_json
 from .config import NesyCVTConfig
-from .metrics import accuracy_at_k, expected_calibration_error, macro_f1
+from .metrics import (
+    accuracy_at_k,
+    expected_calibration_error,
+    macro_f1,
+    macro_precision_recall,
+    multiclass_ovr_macro_auc,
+)
 from .model_factory import MODEL_NAMES, build_classifier, config_for_model
+from .profiling import estimate_flops_per_image
 from .runtime import resolve_device
 
 
@@ -119,6 +126,8 @@ def _build_loaders(
         test_set = datasets.CIFAR100(
             root=data_dir, train=False, download=download, transform=eval_transform
         )
+        if supervised_concepts:
+            test_set = _CoarseTargetDataset(test_set, data_dir, train=False)
     train_indices, val_indices = _stratified_indices(
         train_clean.targets, val_per_class=val_per_class, seed=split_seed
     )
@@ -144,6 +153,45 @@ def _build_loaders(
     return train_loader, val_loader, test_loader
 
 
+def _measure_single_image_latency(
+    model, sample_pixels, device, *, warmup: int = 20, repeats: int = 100
+) -> dict[str, float | int]:
+    import torch
+
+    image = sample_pixels[:1].to(device)
+    model.eval()
+    with torch.inference_mode():
+        for _ in range(warmup):
+            model(image)
+        if device.type == "cuda":
+            torch.cuda.synchronize(device)
+            starts = []
+            ends = []
+            for _ in range(repeats):
+                start = torch.cuda.Event(enable_timing=True)
+                end = torch.cuda.Event(enable_timing=True)
+                start.record()
+                model(image)
+                end.record()
+                starts.append(start)
+                ends.append(end)
+            torch.cuda.synchronize(device)
+            timings_ms = [start.elapsed_time(end) for start, end in zip(starts, ends)]
+        else:
+            timings_ms = []
+            for _ in range(repeats):
+                start = time.perf_counter()
+                model(image)
+                timings_ms.append((time.perf_counter() - start) * 1000.0)
+    ordered = sorted(timings_ms)
+    return {
+        "single_image_latency_mean_ms": statistics.mean(timings_ms),
+        "single_image_latency_p50_ms": statistics.median(timings_ms),
+        "single_image_latency_p95_ms": ordered[math.ceil(0.95 * len(ordered)) - 1],
+        "single_image_latency_repeats": repeats,
+    }
+
+
 def _evaluate(
     model,
     loader,
@@ -151,6 +199,7 @@ def _evaluate(
     *,
     warmup_batches: int = 10,
     reset_peak_memory: bool = True,
+    detailed_metrics: bool = True,
 ) -> dict[str, float | int]:
     import torch
     import torch.nn.functional as F
@@ -174,15 +223,26 @@ def _evaluate(
     taxonomy_examples = 0
     hierarchy_consistency_mae: list[float] = []
     batch_latency_ms: list[float] = []
+    inference_seconds_batch = 0.0
     total_start = time.perf_counter()
     with torch.no_grad():
         for batch in loader:
             pixels, labels = batch[:2]
             coarse_labels = batch[2] if len(batch) > 2 else None
             batch_start = time.perf_counter()
-            output = model(pixels.to(device))
+            device_pixels = pixels.to(device)
+            model_start = time.perf_counter()
+            output = model(device_pixels)
+            if device.type == "cuda":
+                torch.cuda.synchronize(device)
+            inference_seconds_batch += time.perf_counter() - model_start
             logits = output.logits if hasattr(output, "logits") else output
-            if coarse_labels is not None and hasattr(output, "concept_logits"):
+            if (
+                coarse_labels is not None
+                and hasattr(output, "concept_logits")
+                and getattr(getattr(model, "config", None), "concept_schema", None)
+                == "cifar100_coarse20"
+            ):
                 all_coarse_predictions.extend(
                     output.concept_logits.argmax(dim=-1).detach().cpu().tolist()
                 )
@@ -211,8 +271,6 @@ def _evaluate(
                     .cpu()
                     .tolist()
                 )
-            if device.type == "cuda":
-                torch.cuda.synchronize(device)
             batch_latency_ms.append((time.perf_counter() - batch_start) * 1000)
             all_logits.extend(logits.detach().cpu().tolist())
             all_labels.extend(labels.tolist())
@@ -225,9 +283,14 @@ def _evaluate(
     predictions = predictions_tensor.tolist()
     correct = predictions_tensor.eq(labels_tensor).tolist()
     scores = accuracy_at_k(all_logits, all_labels, topk=(1, 5))
-    scores["macro_f1"] = macro_f1(predictions, all_labels, logits_tensor.shape[-1])
-    scores["ece_15"] = expected_calibration_error(confidences.tolist(), correct, num_bins=15)
-    scores["nll"] = float(F.cross_entropy(logits_tensor, labels_tensor).item())
+    if detailed_metrics:
+        scores.update(macro_precision_recall(predictions, all_labels, logits_tensor.shape[-1]))
+        scores["macro_f1"] = macro_f1(predictions, all_labels, logits_tensor.shape[-1])
+        scores["auc_ovr_macro"] = multiclass_ovr_macro_auc(
+            probabilities.tolist(), all_labels, logits_tensor.shape[-1]
+        )
+        scores["ece_15"] = expected_calibration_error(confidences.tolist(), correct, num_bins=15)
+        scores["nll"] = float(F.cross_entropy(logits_tensor, labels_tensor).item())
     if all_coarse_labels:
         scores["coarse_top1"] = sum(
             prediction == target
@@ -239,6 +302,22 @@ def _evaluate(
     scores["images"] = len(all_labels)
     scores["evaluation_seconds"] = elapsed
     scores["images_per_second"] = len(all_labels) / max(elapsed, 1e-9)
+    scores["pipeline_images_per_second"] = scores["images_per_second"]
+    if detailed_metrics:
+        scores["inference_seconds_batch"] = inference_seconds_batch
+        scores["inference_latency_ms_per_image_batch"] = (
+            inference_seconds_batch * 1000.0 / max(len(all_labels), 1)
+        )
+        scores["inference_fps"] = len(all_labels) / max(inference_seconds_batch, 1e-9)
+        scores.update(
+            _measure_single_image_latency(
+                model,
+                first_pixels,
+                device,
+                warmup=max(20, warmup_batches),
+                repeats=100,
+            )
+        )
     scores["batch_latency_mean_ms"] = statistics.mean(batch_latency_ms)
     scores["batch_latency_p50_ms"] = statistics.median(batch_latency_ms)
     ordered_latencies = sorted(batch_latency_ms)
@@ -340,6 +419,7 @@ def _train_one(
             device,
             warmup_batches=0,
             reset_peak_memory=False,
+            detailed_metrics=False,
         )
         epoch_result = {
             "epoch": epoch + 1,
@@ -425,6 +505,16 @@ def _train_one(
     config.save_pretrained(output_dir)
 
     num_parameters = sum(parameter.numel() for parameter in model.parameters())
+    trainable_parameters = sum(
+        parameter.numel() for parameter in model.parameters() if parameter.requires_grad
+    )
+    checkpoint_bytes = (output_dir / "pytorch_model.bin").stat().st_size
+    flops = estimate_flops_per_image(
+        model,
+        device=device,
+        image_size=config.image_size,
+        in_channels=config.in_channels,
+    )
     run_record: dict[str, Any] = {
         "model": model_name,
         "seed": seed,
@@ -440,8 +530,11 @@ def _train_one(
         "validation_images": len(val_loader.dataset),
         "test": test_metrics,
         "num_parameters": num_parameters,
+        "trainable_parameters": trainable_parameters,
+        "checkpoint_bytes": checkpoint_bytes,
+        "model_size_mb": checkpoint_bytes / 1_000_000.0,
+        **flops,
         "model_config": config.to_dict(),
-        "checkpoint_bytes": (output_dir / "pytorch_model.bin").stat().st_size,
         "train_peak_gpu_memory_mb": train_peak_mb,
         "epochs": history,
         "config": {
@@ -559,9 +652,21 @@ def run_cifar100_comparison(
         "batch_latency_mean_ms",
         "batch_latency_p50_ms",
         "batch_latency_p95_ms",
+        "precision_macro",
+        "recall_macro",
+        "auc_ovr_macro",
+        "inference_latency_ms_per_image_batch",
+        "inference_fps",
+        "single_image_latency_mean_ms",
+        "single_image_latency_p50_ms",
+        "single_image_latency_p95_ms",
         "peak_gpu_memory_mb",
         "training_seconds_including_validation",
         "num_parameters",
+        "trainable_parameters",
+        "model_size_mb",
+        "flops_per_image",
+        "flops_g_per_image",
         "taxonomy_agreement",
         "hierarchy_consistency_mae",
     )
@@ -618,6 +723,21 @@ def run_cifar100_comparison(
             "optimizer": "AdamW",
             "augmentation": "Resize(32), AutoAugment(CIFAR10 policy), ToTensor",
             "validation_selection": "best validation top-1 checkpoint",
+            "class_metrics": "macro-averaged one-vs-rest precision, recall, and F1",
+            "auc": "macro one-vs-rest ROC AUC from softmax probabilities",
+            "model_size": "serialized pytorch_model.bin checkpoint in decimal MB",
+            "inference_timing": (
+                "single-image latency is measured at batch size 1; inference FPS is model-only "
+                "throughput at the configured batch size; pipeline throughput includes data loading"
+            ),
+            "flops_method": (
+                "analytical estimate for Conv2d, Linear, attention matrix operations, cosine "
+                "classifier and approximate FFT; see docs/benchmarking.md for operations omitted"
+            ),
+            "test_set_history": (
+                "The official CIFAR-100 test images are excluded from training, but prior pilot "
+                "and pipeline evaluations inspected test results; this is not a blinded holdout."
+            ),
         },
         "hardware": device_label,
         "runs": records,

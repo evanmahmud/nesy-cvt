@@ -70,6 +70,27 @@ def build_parser() -> argparse.ArgumentParser:
         help="Skip the CIFAR-100 test split; report validation metrics only.",
     )
 
+    benchmark_eval_parser = subcommands.add_parser(
+        "benchmark-eval",
+        help="Re-evaluate saved benchmark checkpoints on one shared CIFAR-100 test set",
+    )
+    benchmark_eval_parser.add_argument("--runs-dir", default="runs/cifar100-final-benchmark")
+    benchmark_eval_parser.add_argument("--data-dir", default="data")
+    benchmark_eval_parser.add_argument("--download", action="store_true")
+    benchmark_eval_parser.add_argument("--report", default="results/cifar100-detailed.json")
+    benchmark_eval_parser.add_argument("--batch-size", type=int)
+    benchmark_eval_parser.add_argument("--warmup-batches", type=int, default=10)
+    benchmark_eval_parser.add_argument("--device", choices=["auto", "cuda", "cpu"], default="auto")
+
+    benchmark_report_parser = subcommands.add_parser(
+        "benchmark-report",
+        help="Create comparative CSV/Markdown tables and quality/efficiency plots",
+    )
+    benchmark_report_parser.add_argument("--input", default="results/cifar100-detailed.json")
+    benchmark_report_parser.add_argument(
+        "--output-dir", default="results/cifar100-detailed-report"
+    )
+
     export_parser = subcommands.add_parser("export", help="Write config and HF model card template")
     export_parser.add_argument("--checkpoint-dir")
     export_parser.add_argument("--output-dir", default="hf_export/nesy-cvt")
@@ -141,6 +162,37 @@ def main(argv: list[str] | None = None) -> int:
             taxonomy_rule_weight=args.taxonomy_rule_weight,
             taxonomy_consistency_weight=args.taxonomy_consistency_weight,
         )
+        return 0
+
+    if args.command == "benchmark-eval":
+        from .saved_eval import evaluate_saved_checkpoints
+
+        report = evaluate_saved_checkpoints(
+            runs_dir=args.runs_dir,
+            data_dir=args.data_dir,
+            report_path=args.report,
+            device_name=args.device,
+            batch_size=args.batch_size,
+            download=args.download,
+            warmup_batches=args.warmup_batches,
+        )
+        print(
+            json.dumps(
+                {
+                    "models": report["protocol"]["models"],
+                    "seeds": report["protocol"]["seeds"],
+                    "report": args.report,
+                },
+                indent=2,
+            )
+        )
+        return 0
+
+    if args.command == "benchmark-report":
+        from .reporting import create_benchmark_report
+
+        outputs = create_benchmark_report(args.input, args.output_dir)
+        print(json.dumps(outputs, indent=2, sort_keys=True))
         return 0
 
     if args.command == "export":

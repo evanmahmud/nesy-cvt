@@ -38,6 +38,11 @@ train = [
 hub = [
   "huggingface_hub>=0.30",
 ]
+reports = [
+  "plotly>=6.0",
+  "pandas>=2.2",
+  "kaleido>=1.0",
+]
 dev = [
   "pytest>=8.0",
   "ruff>=0.8",

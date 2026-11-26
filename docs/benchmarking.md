@@ -10,6 +10,8 @@ The pilot checkpoint predates `spectral_mixer_mode` in its config. The loader ke
 
 Run the `nesy-cvt benchmark` command. It uses a fixed stratified split of the 50,000 official training images: 45,000 for training and 5,000 for validation, with 50 validation images from each of the 100 classes. The split is held constant across model runs. Each seed controls initialization, augmentation randomness, and training order.
 
+The trained comparison checkpoints share the same train/validation indices, evaluation transform, official 10,000-image CIFAR-100 test examples, and seed set. The test examples were not used for fitting or checkpoint selection. However, earlier NeSy-CVT pilot and smoke evaluations inspected this official test split, so it is no longer a blinded, untouched test set for this project. Results on it are useful for matched comparison but should not be presented as confirmatory evidence from a pristine holdout.
+
 Every model uses 32x32 inputs, CIFAR-10 AutoAugment policy, `ToTensor`, batch size 16, AdamW with learning rate 0.0003, gradient clipping at 1.0, and 50 epochs. The best checkpoint is selected by validation top-1. The official 10,000-image test split is evaluated after training. Do not use test metrics to select hyperparameters.
 
 The historical controlled comparison includes:
@@ -23,7 +25,7 @@ The historical controlled comparison includes:
 - A small ViT with 4x4 patches.
 - `nesy_cvt_coarse_concepts`, an experimental variant with a 20-dimensional concept head supervised by the CIFAR-100 coarse superclass labels.
 
-The original `nesy_cvt` remains the latent-concept baseline. `nesy_cvt_coarse_concepts` adds supervised superclass concepts but keeps a learned projection. New `nesy_cvt_nano`, `nesy_cvt_tiny`, `nesy_cvt_small`, `nesy_cvt_base`, `nesy_cvt_large`, and `nesy_cvt_huge` variants use an explicit, fixed CIFAR-100 fine-to-coarse rule layer plus a hierarchy-consistency loss. These are new, untrained model configurations; they have no measured advantage until benchmarked. DenseNet-121, ConvNeXt-Tiny, and Swin-Tiny are available as additional selectable references. The roster is stronger but still finite and cannot establish superiority over every image model.
+The original `nesy_cvt` remains the latent-concept baseline. `nesy_cvt_coarse_concepts` adds supervised superclass concepts but keeps a learned projection. The `nesy_cvt_nano`, `nesy_cvt_tiny`, `nesy_cvt_small`, `nesy_cvt_base`, `nesy_cvt_large`, and `nesy_cvt_huge` variants use an explicit, fixed CIFAR-100 fine-to-coarse rule layer plus a hierarchy-consistency loss. Trained checkpoints and a 13-model, three-seed exploratory comparison are included in this repository. The roster is finite and cannot establish superiority over every image model; the shared recipe does not guarantee architecture-specific optimal tuning.
 
 ### Short validation-only check
 
@@ -53,7 +55,7 @@ Run three seeds (42, 43, 44) and report mean and sample standard deviation. For 
   --report results/cifar100-comparison.json
 ```
 
-The command writes a JSON report and a flat CSV. Each run records validation-selected epoch, test top-1/top-5, macro F1, 15-bin ECE, NLL, inference throughput, batch latency percentiles, peak allocated GPU memory, parameter count, checkpoint size, training time, model config, seed, and software/hardware metadata. FLOPs are not currently reported; do not estimate them from parameter count.
+Each completed run records the validation-selected epoch, training configuration, seed, and software/hardware metadata. A test-evaluating run records test metrics and performance measurements; `--validation-only` skips the official test split and records validation metrics only. The saved-checkpoint `benchmark-eval` report adds macro precision/recall/F1, macro one-vs-rest AUC, estimated FLOPs, checkpoint size, batch-1 latency, batched FPS, peak allocated GPU memory, training time, and the shared test-data fingerprint. FLOPs are analytical estimates under the documented convention below, not estimates inferred from parameter count.
 
 `--taxonomy-rule-weight` and `--taxonomy-consistency-weight` expose the rule-fusion and hierarchy-loss strengths. Their defaults (0.5 and 0.1) are starting values, not validated optima. Tune them only on the fixed validation split; set either to `0` for its ablation. Record every tried configuration and do not select by the previously inspected CIFAR-100 test split.
 
@@ -64,6 +66,7 @@ An equivalent invocation for ablations should use a separate output path:
   --device cuda --epochs 50 --batch-size 16 --seeds 42 43 44 `
   --models nesy_cvt nesy_cvt_no_fft nesy_cvt_no_transformer `
     nesy_cvt_no_concept_auxiliary nesy_cvt_linear_classifier `
+  --validation-only `
   --runs-dir runs/cifar100-ablations `
   --report results/cifar100-ablations.json
 ```
@@ -88,9 +91,48 @@ The recovery launcher validates and keeps complete model/seed records, then rest
 
 ## Metrics
 
-Report classification quality (top-1, top-5, macro F1), calibration (ECE and NLL), efficiency (training wall time, inference throughput, batch latency, peak allocated GPU memory, parameters, checkpoint bytes), and uncertainty across seeds. Keep training-time and inference-time measurements separate. Record batch size, warm-up count, precision mode, input size, and whether data-loading time is included.
+The detailed saved-checkpoint comparison reports top-1 and top-5 accuracy, macro precision, macro recall, macro F1, macro one-vs-rest ROC AUC, calibration (ECE and NLL), trainable/total parameters, checkpoint size, estimated FLOPs, batch-1 latency, batched inference FPS, evaluation-pipeline throughput, peak allocated GPU memory, and training time. Score metrics are aggregated over the same seeds as mean ± sample standard deviation. Precision, recall, and F1 are unweighted macro averages over the 100 CIFAR-100 classes; AUC is the unweighted mean of 100 one-vs-rest ROC AUC values computed from softmax probabilities.
 
-The current harness measures evaluation throughput with data loading included and per-batch latency around transfer plus model execution. It runs float32 inference. The reported memory value is PyTorch's peak allocated memory for that process, not total card utilization.
+`single_image_latency_*` is CUDA-event model execution time on one image already resident on the GPU; it excludes data loading and host-to-device transfer. `inference_fps` is model-only wall-time throughput at the common evaluation batch size. `pipeline_images_per_second` includes test-loader iteration and transfers. The report records batch size and warm-up count. All reported inference uses float32. Peak memory is PyTorch's peak allocated memory for the evaluation process, not total card utilization.
+
+FLOPs are a static analytical estimate per 32×32 image: Conv2d and Linear multiply-adds, attention matrix operations, cosine-classifier multiplication, and an approximate 2-D FFT count are included. Normalization, activations, softmax, pooling, most elementwise work, and backend-specific implementation details are omitted. The value is therefore a consistently defined estimate, not an exact hardware instruction count. Checkpoint size is `pytorch_model.bin` bytes divided by 1,000,000 (decimal MB).
+
+### Re-score existing trained checkpoints and make plots
+
+This does not train the models again. It checks that the chosen run directory contains the same training/validation protocol and seeds, then evaluates each saved checkpoint against the same official CIFAR-100 test images. The report stores a SHA-256 fingerprint of those test pixels and labels.
+
+```powershell
+.\.venv-win\Scripts\python.exe -m nesy_cvt benchmark-eval `
+  --device cuda --batch-size 16 `
+  --runs-dir runs/cifar100-final-benchmark `
+  --data-dir data `
+  --report results/cifar100-detailed.json
+
+.\.venv-win\Scripts\python.exe -m pip install -e ".[reports]"
+.\.venv-win\Scripts\python.exe -m nesy_cvt benchmark-report `
+  --input results/cifar100-detailed.json `
+  --output-dir results/cifar100-detailed-report
+```
+
+The output folder contains detailed Markdown and CSV tables, a self-contained interactive Plotly Express dashboard, individual interactive HTML figures, and high-resolution PNG versions of every figure. The PNG exporter uses Kaleido and a local Chrome/Chromium installation. Hover for exact values in HTML and use the legend to show or hide models and metrics. No labels are placed on top of nearby points. Missing metrics remain `N/A`; FLOPs are explicitly labeled analytical estimates.
+
+The existing `runs/cifar100-final-benchmark` roster contains NeSy-CVT, its coarse-concept variant, ResNet-18, MobileNetV3-Small, and ViT-Tiny/4, with seeds 42, 43, and 44. The separate `runs/cifar100-taxonomy-family` directory contains validation-only checkpoints for more variants. They can also be rescored with the same command by changing `--runs-dir` and `--report`, but those results should be labeled exploratory because the CIFAR-100 test split has already been inspected in earlier project runs.
+
+The expanded family report, figures, and tables were generated with:
+
+```powershell
+.\.venv-win\Scripts\python.exe -m nesy_cvt benchmark-eval `
+  --device cuda --batch-size 16 `
+  --runs-dir runs/cifar100-taxonomy-family `
+  --data-dir data `
+  --report results/cifar100-taxonomy-detailed.json
+
+.\.venv-win\Scripts\python.exe -m nesy_cvt benchmark-report `
+  --input results/cifar100-taxonomy-detailed.json `
+  --output-dir results/cifar100-taxonomy-detailed-report
+```
+
+Matching data, split, input size, seeds, and a shared training recipe makes the comparison reproducible and controlled under that recipe. It does not prove that the recipe is equally optimal for each architecture. Report this limit, and avoid claiming general superiority from a single dataset or metric. In particular, compare accuracy against parameters, estimated FLOPs, checkpoint size, latency, FPS, and allocated GPU memory.
 
 ## Additional Evidence Needed for a Paper
 

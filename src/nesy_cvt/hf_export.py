@@ -543,4 +543,25 @@ def push_to_hub(repo_id: str, local_dir: str | Path, *, private: bool = False) -
         private=private,
         exist_ok=True,
     )
-    upload_folder(repo_id=repo_id, folder_path=str(local_dir), repo_type="model")
+    variant_dirs = ("nano", "tiny", "small", "base", "large", "huge")
+    delete_patterns = [
+        "**/__pycache__/**",
+        "**/*.pyc",
+        "evaluation_metrics.json",
+        *(
+            pattern
+            for variant in variant_dirs
+            for pattern in (
+                f"{variant}/nesy_cvt/**",
+                f"{variant}/validation_benchmark_results.json",
+            )
+        ),
+    ]
+    upload_folder(
+        repo_id=repo_id,
+        folder_path=str(local_dir),
+        repo_type="model",
+        ignore_patterns=["**/__pycache__/**", "**/*.pyc"],
+        delete_patterns=delete_patterns,
+        commit_message="Update NeSy-CVT checkpoints, model card, and benchmark figures",
+    )
