@@ -1,0 +1,1897 @@
+{
+  "aggregate_mean_and_sample_std": {
+    "convnext_tiny_cifar": {
+      "auc_ovr_macro": {
+        "mean": 0.7509256161616161,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_mean_ms": {
+        "mean": 3.924989452088674,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_p50_ms": {
+        "mean": 3.8741999305784702,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_p95_ms": {
+        "mean": 4.387199995107949,
+        "n": 1,
+        "sample_std": null
+      },
+      "ece_15": {
+        "mean": 0.030628264878690244,
+        "n": 1,
+        "sample_std": null
+      },
+      "flops_g_per_image": {
+        "mean": 0.181980672,
+        "n": 1,
+        "sample_std": null
+      },
+      "flops_per_image": {
+        "mean": 181980672.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "images_per_second": {
+        "mean": 2951.798779056655,
+        "n": 1,
+        "sample_std": null
+      },
+      "inference_fps": {
+        "mean": 4131.627707586723,
+        "n": 1,
+        "sample_std": null
+      },
+      "inference_latency_ms_per_image_batch": {
+        "mean": 0.24203536009881646,
+        "n": 1,
+        "sample_std": null
+      },
+      "macro_f1": {
+        "mean": 0.02185098106073464,
+        "n": 1,
+        "sample_std": null
+      },
+      "model_size_mb": {
+        "mean": 111.644667,
+        "n": 1,
+        "sample_std": null
+      },
+      "nll": {
+        "mean": 4.218403339385986,
+        "n": 1,
+        "sample_std": null
+      },
+      "num_parameters": {
+        "mean": 27897028.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "peak_gpu_memory_mb": {
+        "mean": 395.52587890625,
+        "n": 1,
+        "sample_std": null
+      },
+      "precision_macro": {
+        "mean": 0.038290062806955356,
+        "n": 1,
+        "sample_std": null
+      },
+      "recall_macro": {
+        "mean": 0.054400000000000004,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_mean_ms": {
+        "mean": 2.952421450614929,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_p50_ms": {
+        "mean": 2.9306880235671997,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_p95_ms": {
+        "mean": 3.160799980163574,
+        "n": 1,
+        "sample_std": null
+      },
+      "top1": {
+        "mean": 0.0544,
+        "n": 1,
+        "sample_std": null
+      },
+      "top5": {
+        "mean": 0.2058,
+        "n": 1,
+        "sample_std": null
+      },
+      "trainable_parameters": {
+        "mean": 27897028.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "training_seconds_including_validation": {
+        "mean": 58.52423539990559,
+        "n": 1,
+        "sample_std": null
+      }
+    },
+    "nesy_cvt_no_concept_auxiliary": {
+      "auc_ovr_macro": {
+        "mean": 0.7220627272727274,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_mean_ms": {
+        "mean": 10.26580671477801,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_p50_ms": {
+        "mean": 10.298699955455959,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_p95_ms": {
+        "mean": 10.862600058317184,
+        "n": 1,
+        "sample_std": null
+      },
+      "ece_15": {
+        "mean": 0.028209914146177472,
+        "n": 1,
+        "sample_std": null
+      },
+      "flops_g_per_image": {
+        "mean": 2.56842624,
+        "n": 1,
+        "sample_std": null
+      },
+      "flops_per_image": {
+        "mean": 2568426240.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "images_per_second": {
+        "mean": 1368.6032612251238,
+        "n": 1,
+        "sample_std": null
+      },
+      "inference_fps": {
+        "mean": 1564.8295425776298,
+        "n": 1,
+        "sample_std": null
+      },
+      "inference_latency_ms_per_image_batch": {
+        "mean": 0.6390472398372367,
+        "n": 1,
+        "sample_std": null
+      },
+      "macro_f1": {
+        "mean": 0.026545369193080117,
+        "n": 1,
+        "sample_std": null
+      },
+      "model_size_mb": {
+        "mean": 1.951476,
+        "n": 1,
+        "sample_std": null
+      },
+      "nll": {
+        "mean": 4.349517345428467,
+        "n": 1,
+        "sample_std": null
+      },
+      "num_parameters": {
+        "mean": 481153.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "peak_gpu_memory_mb": {
+        "mean": 147.8388671875,
+        "n": 1,
+        "sample_std": null
+      },
+      "precision_macro": {
+        "mean": 0.02437890734295244,
+        "n": 1,
+        "sample_std": null
+      },
+      "recall_macro": {
+        "mean": 0.048,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_mean_ms": {
+        "mean": 2.168628476858139,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_p50_ms": {
+        "mean": 2.092415928840637,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_p95_ms": {
+        "mean": 2.5063679218292236,
+        "n": 1,
+        "sample_std": null
+      },
+      "top1": {
+        "mean": 0.048,
+        "n": 1,
+        "sample_std": null
+      },
+      "top5": {
+        "mean": 0.1902,
+        "n": 1,
+        "sample_std": null
+      },
+      "trainable_parameters": {
+        "mean": 481153.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "training_seconds_including_validation": {
+        "mean": 133.4834692000877,
+        "n": 1,
+        "sample_std": null
+      }
+    },
+    "nesy_cvt_tiny": {
+      "auc_ovr_macro": {
+        "mean": 0.7809779191919192,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_mean_ms": {
+        "mean": 10.746268056758558,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_p50_ms": {
+        "mean": 10.753799928352237,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_p95_ms": {
+        "mean": 11.388200102373958,
+        "n": 1,
+        "sample_std": null
+      },
+      "ece_15": {
+        "mean": 0.011578368792310355,
+        "n": 1,
+        "sample_std": null
+      },
+      "flops_g_per_image": {
+        "mean": 2.56843008,
+        "n": 1,
+        "sample_std": null
+      },
+      "flops_per_image": {
+        "mean": 2568430080.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "hierarchy_consistency_mae": {
+        "mean": 0.039508192877843976,
+        "n": 1,
+        "sample_std": null
+      },
+      "images_per_second": {
+        "mean": 1312.7685514071484,
+        "n": 1,
+        "sample_std": null
+      },
+      "inference_fps": {
+        "mean": 1556.564819042514,
+        "n": 1,
+        "sample_std": null
+      },
+      "inference_latency_ms_per_image_batch": {
+        "mean": 0.6424403197132051,
+        "n": 1,
+        "sample_std": null
+      },
+      "macro_f1": {
+        "mean": 0.027932469791816707,
+        "n": 1,
+        "sample_std": null
+      },
+      "model_size_mb": {
+        "mean": 1.960893,
+        "n": 1,
+        "sample_std": null
+      },
+      "nll": {
+        "mean": 4.165218830108643,
+        "n": 1,
+        "sample_std": null
+      },
+      "num_parameters": {
+        "mean": 483093.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "peak_gpu_memory_mb": {
+        "mean": 147.8955078125,
+        "n": 1,
+        "sample_std": null
+      },
+      "precision_macro": {
+        "mean": 0.04010374426404176,
+        "n": 1,
+        "sample_std": null
+      },
+      "recall_macro": {
+        "mean": 0.054000000000000006,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_mean_ms": {
+        "mean": 2.268826559782028,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_p50_ms": {
+        "mean": 2.1639519929885864,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_p95_ms": {
+        "mean": 2.647167921066284,
+        "n": 1,
+        "sample_std": null
+      },
+      "taxonomy_agreement": {
+        "mean": 0.8678,
+        "n": 1,
+        "sample_std": null
+      },
+      "top1": {
+        "mean": 0.054,
+        "n": 1,
+        "sample_std": null
+      },
+      "top5": {
+        "mean": 0.1954,
+        "n": 1,
+        "sample_std": null
+      },
+      "trainable_parameters": {
+        "mean": 483093.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "training_seconds_including_validation": {
+        "mean": 137.15929370000958,
+        "n": 1,
+        "sample_std": null
+      }
+    },
+    "swin_t_cifar": {
+      "auc_ovr_macro": {
+        "mean": 0.6812730303030302,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_mean_ms": {
+        "mean": 6.794303513545627,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_p50_ms": {
+        "mean": 6.729400018230081,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_p95_ms": {
+        "mean": 7.186300004832447,
+        "n": 1,
+        "sample_std": null
+      },
+      "ece_15": {
+        "mean": 0.005314108759909873,
+        "n": 1,
+        "sample_std": null
+      },
+      "flops_g_per_image": {
+        "mean": 0.169010688,
+        "n": 1,
+        "sample_std": null
+      },
+      "flops_per_image": {
+        "mean": 169010688.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "images_per_second": {
+        "mean": 1952.9514466656108,
+        "n": 1,
+        "sample_std": null
+      },
+      "inference_fps": {
+        "mean": 2370.5284879524797,
+        "n": 1,
+        "sample_std": null
+      },
+      "inference_latency_ms_per_image_batch": {
+        "mean": 0.4218468603445217,
+        "n": 1,
+        "sample_std": null
+      },
+      "macro_f1": {
+        "mean": 0.008611621250090358,
+        "n": 1,
+        "sample_std": null
+      },
+      "model_size_mb": {
+        "mean": 110.672519,
+        "n": 1,
+        "sample_std": null
+      },
+      "nll": {
+        "mean": 4.42376184463501,
+        "n": 1,
+        "sample_std": null
+      },
+      "num_parameters": {
+        "mean": 27596254.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "peak_gpu_memory_mb": {
+        "mean": 405.02294921875,
+        "n": 1,
+        "sample_std": null
+      },
+      "precision_macro": {
+        "mean": 0.006822278831096002,
+        "n": 1,
+        "sample_std": null
+      },
+      "recall_macro": {
+        "mean": 0.0364,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_mean_ms": {
+        "mean": 5.7434361553192135,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_p50_ms": {
+        "mean": 5.650543928146362,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_p95_ms": {
+        "mean": 6.493279933929443,
+        "n": 1,
+        "sample_std": null
+      },
+      "top1": {
+        "mean": 0.0364,
+        "n": 1,
+        "sample_std": null
+      },
+      "top5": {
+        "mean": 0.1322,
+        "n": 1,
+        "sample_std": null
+      },
+      "trainable_parameters": {
+        "mean": 27596254.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "training_seconds_including_validation": {
+        "mean": 88.03189169999678,
+        "n": 1,
+        "sample_std": null
+      }
+    },
+    "wide_resnet28x10_cifar": {
+      "auc_ovr_macro": {
+        "mean": 0.7463831313131313,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_mean_ms": {
+        "mean": 8.836080189258718,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_p50_ms": {
+        "mean": 8.82900005672127,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_p95_ms": {
+        "mean": 9.386399993672967,
+        "n": 1,
+        "sample_std": null
+      },
+      "ece_15": {
+        "mean": 0.05607034811228514,
+        "n": 1,
+        "sample_std": null
+      },
+      "flops_g_per_image": {
+        "mean": 10.486772736,
+        "n": 1,
+        "sample_std": null
+      },
+      "flops_per_image": {
+        "mean": 10486772736.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "images_per_second": {
+        "mean": 1559.4598330191482,
+        "n": 1,
+        "sample_std": null
+      },
+      "inference_fps": {
+        "mean": 1819.7411047149608,
+        "n": 1,
+        "sample_std": null
+      },
+      "inference_latency_ms_per_image_batch": {
+        "mean": 0.5495287199970335,
+        "n": 1,
+        "sample_std": null
+      },
+      "macro_f1": {
+        "mean": 0.01375134110562066,
+        "n": 1,
+        "sample_std": null
+      },
+      "model_size_mb": {
+        "mean": 146.266639,
+        "n": 1,
+        "sample_std": null
+      },
+      "nll": {
+        "mean": 4.2500786781311035,
+        "n": 1,
+        "sample_std": null
+      },
+      "num_parameters": {
+        "mean": 36536884.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "peak_gpu_memory_mb": {
+        "mean": 545.91943359375,
+        "n": 1,
+        "sample_std": null
+      },
+      "precision_macro": {
+        "mean": 0.02699933614945551,
+        "n": 1,
+        "sample_std": null
+      },
+      "recall_macro": {
+        "mean": 0.0432,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_mean_ms": {
+        "mean": 2.4541023993492126,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_p50_ms": {
+        "mean": 2.3537280559539795,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_p95_ms": {
+        "mean": 2.7377281188964844,
+        "n": 1,
+        "sample_std": null
+      },
+      "top1": {
+        "mean": 0.0432,
+        "n": 1,
+        "sample_std": null
+      },
+      "top5": {
+        "mean": 0.1864,
+        "n": 1,
+        "sample_std": null
+      },
+      "trainable_parameters": {
+        "mean": 36536884.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "training_seconds_including_validation": {
+        "mean": 99.94833289994858,
+        "n": 1,
+        "sample_std": null
+      }
+    }
+  },
+  "benchmark_name": "CIFAR-100 controlled comparison",
+  "hardware": "cuda (NVIDIA GeForce RTX 5070)",
+  "protocol": {
+    "auc": "macro one-vs-rest ROC AUC from softmax probabilities",
+    "augmentation": "RandomCrop(32,pad=4), RandomHorizontalFlip, AutoAugment(CIFAR10 policy), ToTensor, Normalize(CIFAR100 stats)",
+    "batch_size": 16,
+    "class_metrics": "macro-averaged one-vs-rest precision, recall, and F1",
+    "data_recipe": "cifar100_standard_v2",
+    "dataset": "CIFAR-100 fine labels",
+    "epochs": 1,
+    "flops_method": "analytical estimate for Conv2d, Linear, attention matrix operations, cosine classifier and approximate FFT; see docs/benchmarking.md for operations omitted",
+    "grad_clip_norm": 0.0,
+    "inference_timing": "single-image latency is measured at batch size 1; inference FPS is model-only throughput at the configured batch size; pipeline throughput includes data loading",
+    "learning_rate": 0.1,
+    "lr_schedule": "cosine",
+    "model_size": "serialized pytorch_model.bin checkpoint in decimal MB",
+    "models": [
+      "nesy_cvt_tiny",
+      "nesy_cvt_no_concept_auxiliary",
+      "wide_resnet28x10_cifar",
+      "convnext_tiny_cifar",
+      "swin_t_cifar"
+    ],
+    "optimizer": "SGD",
+    "seeds": [
+      42
+    ],
+    "taxonomy_consistency_weight": 0.1,
+    "taxonomy_rule_weight": 0.5,
+    "test": "not evaluated; validation-only mode",
+    "test_set_history": "The official CIFAR-100 test images are excluded from training, but prior pilot and pipeline evaluations inspected test results; this is not a blinded holdout.",
+    "train_validation": "stratified 45,000/5,000 split from official 50,000 training images",
+    "validation_only": true,
+    "validation_selection": "best validation top-1 checkpoint",
+    "weight_decay": 0.0005
+  },
+  "runs": [
+    {
+      "best_epoch_by_validation_top1": 1,
+      "best_validation_coarse_top1": 0.1428,
+      "best_validation_hierarchy_consistency_mae": 0.039508192875608805,
+      "best_validation_taxonomy_agreement": 0.8678,
+      "best_validation_top1": 0.054,
+      "best_validation_top5": 0.1954,
+      "checkpoint_bytes": 1960893,
+      "config": {
+        "batch_size": 16,
+        "concept_supervision": "CIFAR-100 coarse labels (20 superclass concepts)",
+        "data_recipe": "cifar100_standard_v2",
+        "dataloader_workers": 0,
+        "dataset": "CIFAR-100 fine labels",
+        "epochs": 1,
+        "eval_transform": "ToTensor, Normalize(CIFAR100 stats)",
+        "grad_clip_norm": 0.0,
+        "input_size": 32,
+        "learning_rate": 0.1,
+        "lr_schedule": "cosine",
+        "optimizer": "SGD",
+        "precision": "float32",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "test_evaluated": false,
+        "train_transform": "RandomCrop(32,padding=4), RandomHorizontalFlip, AutoAugment(CIFAR10 policy), ToTensor, Normalize(CIFAR100 stats)",
+        "validation_images_per_class": 50,
+        "validation_split_seed": 1729,
+        "weight_decay": 0.0005
+      },
+      "cuda_runtime": "13.2",
+      "cudnn_deterministic": true,
+      "epochs": [
+        {
+          "epoch": 1,
+          "train_loss": 4.7769121962681895,
+          "val_coarse_top1": 0.1428,
+          "val_hierarchy_consistency_mae": 0.039508192875608805,
+          "val_taxonomy_agreement": 0.8678,
+          "val_top1": 0.054,
+          "val_top5": 0.1954
+        }
+      ],
+      "epochs_requested": 1,
+      "flops_breakdown": {
+        "conv2d": 46596096,
+        "cosine_classifier": 19200,
+        "linear": 603983616,
+        "multihead_attention": 1912602624,
+        "spectral_fft_estimate": 5228544
+      },
+      "flops_g_per_image": 2.56843008,
+      "flops_method": "Analytical estimate: Conv2d, Linear, multi-head/window-attention matrix operations, cosine-classifier matrix multiplication, and approximate 2D FFT work. Uses 2 FLOPs/MAC; excludes normalization, activation, softmax, pooling, and most elementwise operations.",
+      "flops_per_image": 2568430080,
+      "hardware": "cuda (NVIDIA GeForce RTX 5070)",
+      "model": "nesy_cvt_tiny",
+      "model_config": {
+        "classifier_type": "cosine",
+        "concept_dim": 20,
+        "concept_loss_weight": 0.1,
+        "concept_schema": "cifar100_coarse20",
+        "depths": [
+          2,
+          2
+        ],
+        "dropout": 0.0,
+        "embed_dim": 96,
+        "image_size": 32,
+        "in_channels": 3,
+        "layer_norm_eps": 1e-06,
+        "mlp_ratio": 4.0,
+        "model_size": "tiny",
+        "model_type": "nesy-cvt",
+        "num_classes": 100,
+        "num_heads": 4,
+        "prototype_loss_weight": 0.05,
+        "reasoning_mode": "cifar100_taxonomy",
+        "rule_loss_weight": 0.05,
+        "spectral_loss_weight": 0.01,
+        "spectral_mixer_mode": "residual_identity",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "use_concept_auxiliary": true,
+        "use_spectral_mixer": true,
+        "use_transformer": true
+      },
+      "model_size_mb": 1.960893,
+      "num_parameters": 483093,
+      "platform": "Windows-11-10.0.26200-SP0",
+      "python": "3.12.6",
+      "pytorch": "2.13.0+cu132",
+      "run_dir": "runs\\cifar100-paper-v2-preflight\\nesy_cvt_tiny\\seed-42",
+      "seed": 42,
+      "test": null,
+      "torchvision": "0.28.0+cu132",
+      "train_images_per_epoch": 45000,
+      "train_peak_gpu_memory_mb": 638.87158203125,
+      "trainable_parameters": 483093,
+      "training_seconds_including_validation": 137.15929370000958,
+      "validation": {
+        "auc_ovr_macro": 0.7809779191919192,
+        "batch_latency_mean_ms": 10.746268056758558,
+        "batch_latency_p50_ms": 10.753799928352237,
+        "batch_latency_p95_ms": 11.388200102373958,
+        "coarse_top1": 0.1428,
+        "ece_15": 0.011578368792310355,
+        "evaluation_seconds": 3.8087445000419393,
+        "hierarchy_consistency_mae": 0.039508192877843976,
+        "images": 5000,
+        "images_per_second": 1312.7685514071484,
+        "inference_fps": 1556.564819042514,
+        "inference_latency_ms_per_image_batch": 0.6424403197132051,
+        "inference_seconds_batch": 3.2122015985660255,
+        "macro_f1": 0.027932469791816707,
+        "nll": 4.165218830108643,
+        "peak_gpu_memory_mb": 147.8955078125,
+        "pipeline_images_per_second": 1312.7685514071484,
+        "precision_macro": 0.04010374426404176,
+        "recall_macro": 0.054000000000000006,
+        "single_image_latency_mean_ms": 2.268826559782028,
+        "single_image_latency_p50_ms": 2.1639519929885864,
+        "single_image_latency_p95_ms": 2.647167921066284,
+        "single_image_latency_repeats": 100,
+        "taxonomy_agreement": 0.8678,
+        "top1": 0.054,
+        "top5": 0.1954
+      },
+      "validation_images": 5000
+    },
+    {
+      "best_epoch_by_validation_top1": 1,
+      "best_validation_coarse_top1": null,
+      "best_validation_hierarchy_consistency_mae": null,
+      "best_validation_taxonomy_agreement": null,
+      "best_validation_top1": 0.048,
+      "best_validation_top5": 0.1902,
+      "checkpoint_bytes": 1951476,
+      "config": {
+        "batch_size": 16,
+        "concept_supervision": "none; latent auxiliary class head",
+        "data_recipe": "cifar100_standard_v2",
+        "dataloader_workers": 0,
+        "dataset": "CIFAR-100 fine labels",
+        "epochs": 1,
+        "eval_transform": "ToTensor, Normalize(CIFAR100 stats)",
+        "grad_clip_norm": 0.0,
+        "input_size": 32,
+        "learning_rate": 0.1,
+        "lr_schedule": "cosine",
+        "optimizer": "SGD",
+        "precision": "float32",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "test_evaluated": false,
+        "train_transform": "RandomCrop(32,padding=4), RandomHorizontalFlip, AutoAugment(CIFAR10 policy), ToTensor, Normalize(CIFAR100 stats)",
+        "validation_images_per_class": 50,
+        "validation_split_seed": 1729,
+        "weight_decay": 0.0005
+      },
+      "cuda_runtime": "13.2",
+      "cudnn_deterministic": true,
+      "epochs": [
+        {
+          "epoch": 1,
+          "train_loss": 4.638902240065633,
+          "val_top1": 0.048,
+          "val_top5": 0.1902
+        }
+      ],
+      "epochs_requested": 1,
+      "flops_breakdown": {
+        "conv2d": 46596096,
+        "cosine_classifier": 19200,
+        "linear": 603979776,
+        "multihead_attention": 1912602624,
+        "spectral_fft_estimate": 5228544
+      },
+      "flops_g_per_image": 2.56842624,
+      "flops_method": "Analytical estimate: Conv2d, Linear, multi-head/window-attention matrix operations, cosine-classifier matrix multiplication, and approximate 2D FFT work. Uses 2 FLOPs/MAC; excludes normalization, activation, softmax, pooling, and most elementwise operations.",
+      "flops_per_image": 2568426240,
+      "hardware": "cuda (NVIDIA GeForce RTX 5070)",
+      "model": "nesy_cvt_no_concept_auxiliary",
+      "model_config": {
+        "classifier_type": "cosine",
+        "concept_dim": 32,
+        "concept_loss_weight": 0.1,
+        "concept_schema": "latent",
+        "depths": [
+          2,
+          2
+        ],
+        "dropout": 0.0,
+        "embed_dim": 96,
+        "image_size": 32,
+        "in_channels": 3,
+        "layer_norm_eps": 1e-06,
+        "mlp_ratio": 4.0,
+        "model_size": "tiny",
+        "model_type": "nesy-cvt",
+        "num_classes": 100,
+        "num_heads": 4,
+        "prototype_loss_weight": 0.05,
+        "reasoning_mode": "learned_projection",
+        "rule_loss_weight": 0.05,
+        "spectral_loss_weight": 0.01,
+        "spectral_mixer_mode": "residual_identity",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "use_concept_auxiliary": false,
+        "use_spectral_mixer": true,
+        "use_transformer": true
+      },
+      "model_size_mb": 1.951476,
+      "num_parameters": 481153,
+      "platform": "Windows-11-10.0.26200-SP0",
+      "python": "3.12.6",
+      "pytorch": "2.13.0+cu132",
+      "run_dir": "runs\\cifar100-paper-v2-preflight\\nesy_cvt_no_concept_auxiliary\\seed-42",
+      "seed": 42,
+      "test": null,
+      "torchvision": "0.28.0+cu132",
+      "train_images_per_epoch": 45000,
+      "train_peak_gpu_memory_mb": 638.83056640625,
+      "trainable_parameters": 481153,
+      "training_seconds_including_validation": 133.4834692000877,
+      "validation": {
+        "auc_ovr_macro": 0.7220627272727274,
+        "batch_latency_mean_ms": 10.26580671477801,
+        "batch_latency_p50_ms": 10.298699955455959,
+        "batch_latency_p95_ms": 10.862600058317184,
+        "ece_15": 0.028209914146177472,
+        "evaluation_seconds": 3.653359700110741,
+        "images": 5000,
+        "images_per_second": 1368.6032612251238,
+        "inference_fps": 1564.8295425776298,
+        "inference_latency_ms_per_image_batch": 0.6390472398372367,
+        "inference_seconds_batch": 3.1952361991861835,
+        "macro_f1": 0.026545369193080117,
+        "nll": 4.349517345428467,
+        "peak_gpu_memory_mb": 147.8388671875,
+        "pipeline_images_per_second": 1368.6032612251238,
+        "precision_macro": 0.02437890734295244,
+        "recall_macro": 0.048,
+        "single_image_latency_mean_ms": 2.168628476858139,
+        "single_image_latency_p50_ms": 2.092415928840637,
+        "single_image_latency_p95_ms": 2.5063679218292236,
+        "single_image_latency_repeats": 100,
+        "top1": 0.048,
+        "top5": 0.1902
+      },
+      "validation_images": 5000
+    },
+    {
+      "best_epoch_by_validation_top1": 1,
+      "best_validation_coarse_top1": null,
+      "best_validation_hierarchy_consistency_mae": null,
+      "best_validation_taxonomy_agreement": null,
+      "best_validation_top1": 0.0432,
+      "best_validation_top5": 0.1864,
+      "checkpoint_bytes": 146266639,
+      "config": {
+        "batch_size": 16,
+        "concept_supervision": "none; latent auxiliary class head",
+        "data_recipe": "cifar100_standard_v2",
+        "dataloader_workers": 0,
+        "dataset": "CIFAR-100 fine labels",
+        "epochs": 1,
+        "eval_transform": "ToTensor, Normalize(CIFAR100 stats)",
+        "grad_clip_norm": 0.0,
+        "input_size": 32,
+        "learning_rate": 0.1,
+        "lr_schedule": "cosine",
+        "optimizer": "SGD",
+        "precision": "float32",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "test_evaluated": false,
+        "train_transform": "RandomCrop(32,padding=4), RandomHorizontalFlip, AutoAugment(CIFAR10 policy), ToTensor, Normalize(CIFAR100 stats)",
+        "validation_images_per_class": 50,
+        "validation_split_seed": 1729,
+        "weight_decay": 0.0005
+      },
+      "cuda_runtime": "13.2",
+      "cudnn_deterministic": true,
+      "epochs": [
+        {
+          "epoch": 1,
+          "train_loss": 4.477660138455312,
+          "val_top1": 0.0432,
+          "val_top5": 0.1864
+        }
+      ],
+      "epochs_requested": 1,
+      "flops_breakdown": {
+        "conv2d": 10486644736,
+        "linear": 128000
+      },
+      "flops_g_per_image": 10.486772736,
+      "flops_method": "Analytical estimate: Conv2d, Linear, multi-head/window-attention matrix operations, cosine-classifier matrix multiplication, and approximate 2D FFT work. Uses 2 FLOPs/MAC; excludes normalization, activation, softmax, pooling, and most elementwise operations.",
+      "flops_per_image": 10486772736,
+      "hardware": "cuda (NVIDIA GeForce RTX 5070)",
+      "model": "wide_resnet28x10_cifar",
+      "model_config": {
+        "classifier_type": "cosine",
+        "concept_dim": 32,
+        "concept_loss_weight": 0.1,
+        "concept_schema": "latent",
+        "depths": [
+          2,
+          2
+        ],
+        "dropout": 0.0,
+        "embed_dim": 96,
+        "image_size": 32,
+        "in_channels": 3,
+        "layer_norm_eps": 1e-06,
+        "mlp_ratio": 4.0,
+        "model_size": "tiny",
+        "model_type": "nesy-cvt",
+        "num_classes": 100,
+        "num_heads": 4,
+        "prototype_loss_weight": 0.05,
+        "reasoning_mode": "learned_projection",
+        "rule_loss_weight": 0.05,
+        "spectral_loss_weight": 0.01,
+        "spectral_mixer_mode": "residual_identity",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "use_concept_auxiliary": true,
+        "use_spectral_mixer": true,
+        "use_transformer": true
+      },
+      "model_size_mb": 146.266639,
+      "num_parameters": 36536884,
+      "platform": "Windows-11-10.0.26200-SP0",
+      "python": "3.12.6",
+      "pytorch": "2.13.0+cu132",
+      "run_dir": "runs\\cifar100-paper-v2-preflight\\wide_resnet28x10_cifar\\seed-42",
+      "seed": 42,
+      "test": null,
+      "torchvision": "0.28.0+cu132",
+      "train_images_per_epoch": 45000,
+      "train_peak_gpu_memory_mb": 796.2783203125,
+      "trainable_parameters": 36536884,
+      "training_seconds_including_validation": 99.94833289994858,
+      "validation": {
+        "auc_ovr_macro": 0.7463831313131313,
+        "batch_latency_mean_ms": 8.836080189258718,
+        "batch_latency_p50_ms": 8.82900005672127,
+        "batch_latency_p95_ms": 9.386399993672967,
+        "ece_15": 0.05607034811228514,
+        "evaluation_seconds": 3.2062384000746533,
+        "images": 5000,
+        "images_per_second": 1559.4598330191482,
+        "inference_fps": 1819.7411047149608,
+        "inference_latency_ms_per_image_batch": 0.5495287199970335,
+        "inference_seconds_batch": 2.7476435999851674,
+        "macro_f1": 0.01375134110562066,
+        "nll": 4.2500786781311035,
+        "peak_gpu_memory_mb": 545.91943359375,
+        "pipeline_images_per_second": 1559.4598330191482,
+        "precision_macro": 0.02699933614945551,
+        "recall_macro": 0.0432,
+        "single_image_latency_mean_ms": 2.4541023993492126,
+        "single_image_latency_p50_ms": 2.3537280559539795,
+        "single_image_latency_p95_ms": 2.7377281188964844,
+        "single_image_latency_repeats": 100,
+        "top1": 0.0432,
+        "top5": 0.1864
+      },
+      "validation_images": 5000
+    },
+    {
+      "best_epoch_by_validation_top1": 1,
+      "best_validation_coarse_top1": null,
+      "best_validation_hierarchy_consistency_mae": null,
+      "best_validation_taxonomy_agreement": null,
+      "best_validation_top1": 0.0544,
+      "best_validation_top5": 0.2058,
+      "checkpoint_bytes": 111644667,
+      "config": {
+        "batch_size": 16,
+        "concept_supervision": "none; latent auxiliary class head",
+        "data_recipe": "cifar100_standard_v2",
+        "dataloader_workers": 0,
+        "dataset": "CIFAR-100 fine labels",
+        "epochs": 1,
+        "eval_transform": "ToTensor, Normalize(CIFAR100 stats)",
+        "grad_clip_norm": 0.0,
+        "input_size": 32,
+        "learning_rate": 0.1,
+        "lr_schedule": "cosine",
+        "optimizer": "SGD",
+        "precision": "float32",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "test_evaluated": false,
+        "train_transform": "RandomCrop(32,padding=4), RandomHorizontalFlip, AutoAugment(CIFAR10 policy), ToTensor, Normalize(CIFAR100 stats)",
+        "validation_images_per_class": 50,
+        "validation_split_seed": 1729,
+        "weight_decay": 0.0005
+      },
+      "cuda_runtime": "13.2",
+      "cudnn_deterministic": true,
+      "epochs": [
+        {
+          "epoch": 1,
+          "train_loss": 4.879981124608745,
+          "val_top1": 0.0544,
+          "val_top5": 0.2058
+        }
+      ],
+      "epochs_requested": 1,
+      "flops_breakdown": {
+        "conv2d": 11957760,
+        "linear": 170022912
+      },
+      "flops_g_per_image": 0.181980672,
+      "flops_method": "Analytical estimate: Conv2d, Linear, multi-head/window-attention matrix operations, cosine-classifier matrix multiplication, and approximate 2D FFT work. Uses 2 FLOPs/MAC; excludes normalization, activation, softmax, pooling, and most elementwise operations.",
+      "flops_per_image": 181980672,
+      "hardware": "cuda (NVIDIA GeForce RTX 5070)",
+      "model": "convnext_tiny_cifar",
+      "model_config": {
+        "classifier_type": "cosine",
+        "concept_dim": 32,
+        "concept_loss_weight": 0.1,
+        "concept_schema": "latent",
+        "depths": [
+          2,
+          2
+        ],
+        "dropout": 0.0,
+        "embed_dim": 96,
+        "image_size": 32,
+        "in_channels": 3,
+        "layer_norm_eps": 1e-06,
+        "mlp_ratio": 4.0,
+        "model_size": "tiny",
+        "model_type": "nesy-cvt",
+        "num_classes": 100,
+        "num_heads": 4,
+        "prototype_loss_weight": 0.05,
+        "reasoning_mode": "learned_projection",
+        "rule_loss_weight": 0.05,
+        "spectral_loss_weight": 0.01,
+        "spectral_mixer_mode": "residual_identity",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "use_concept_auxiliary": true,
+        "use_spectral_mixer": true,
+        "use_transformer": true
+      },
+      "model_size_mb": 111.644667,
+      "num_parameters": 27897028,
+      "platform": "Windows-11-10.0.26200-SP0",
+      "python": "3.12.6",
+      "pytorch": "2.13.0+cu132",
+      "run_dir": "runs\\cifar100-paper-v2-preflight\\convnext_tiny_cifar\\seed-42",
+      "seed": 42,
+      "test": null,
+      "torchvision": "0.28.0+cu132",
+      "train_images_per_epoch": 45000,
+      "train_peak_gpu_memory_mb": 493.40185546875,
+      "trainable_parameters": 27897028,
+      "training_seconds_including_validation": 58.52423539990559,
+      "validation": {
+        "auc_ovr_macro": 0.7509256161616161,
+        "batch_latency_mean_ms": 3.924989452088674,
+        "batch_latency_p50_ms": 3.8741999305784702,
+        "batch_latency_p95_ms": 4.387199995107949,
+        "ece_15": 0.030628264878690244,
+        "evaluation_seconds": 1.693882399937138,
+        "images": 5000,
+        "images_per_second": 2951.798779056655,
+        "inference_fps": 4131.627707586723,
+        "inference_latency_ms_per_image_batch": 0.24203536009881646,
+        "inference_seconds_batch": 1.2101768004940823,
+        "macro_f1": 0.02185098106073464,
+        "nll": 4.218403339385986,
+        "peak_gpu_memory_mb": 395.52587890625,
+        "pipeline_images_per_second": 2951.798779056655,
+        "precision_macro": 0.038290062806955356,
+        "recall_macro": 0.054400000000000004,
+        "single_image_latency_mean_ms": 2.952421450614929,
+        "single_image_latency_p50_ms": 2.9306880235671997,
+        "single_image_latency_p95_ms": 3.160799980163574,
+        "single_image_latency_repeats": 100,
+        "top1": 0.0544,
+        "top5": 0.2058
+      },
+      "validation_images": 5000
+    },
+    {
+      "best_epoch_by_validation_top1": 1,
+      "best_validation_coarse_top1": null,
+      "best_validation_hierarchy_consistency_mae": null,
+      "best_validation_taxonomy_agreement": null,
+      "best_validation_top1": 0.0364,
+      "best_validation_top5": 0.1322,
+      "checkpoint_bytes": 110672519,
+      "config": {
+        "batch_size": 16,
+        "concept_supervision": "none; latent auxiliary class head",
+        "data_recipe": "cifar100_standard_v2",
+        "dataloader_workers": 0,
+        "dataset": "CIFAR-100 fine labels",
+        "epochs": 1,
+        "eval_transform": "ToTensor, Normalize(CIFAR100 stats)",
+        "grad_clip_norm": 0.0,
+        "input_size": 32,
+        "learning_rate": 0.1,
+        "lr_schedule": "cosine",
+        "optimizer": "SGD",
+        "precision": "float32",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "test_evaluated": false,
+        "train_transform": "RandomCrop(32,padding=4), RandomHorizontalFlip, AutoAugment(CIFAR10 policy), ToTensor, Normalize(CIFAR100 stats)",
+        "validation_images_per_class": 50,
+        "validation_split_seed": 1729,
+        "weight_decay": 0.0005
+      },
+      "cuda_runtime": "13.2",
+      "cudnn_deterministic": true,
+      "epochs": [
+        {
+          "epoch": 1,
+          "train_loss": 5.0340933479366035,
+          "val_top1": 0.0364,
+          "val_top5": 0.1322
+        }
+      ],
+      "epochs_requested": 1,
+      "flops_breakdown": {
+        "conv2d": 589824,
+        "linear": 120477696,
+        "window_attention": 47943168
+      },
+      "flops_g_per_image": 0.169010688,
+      "flops_method": "Analytical estimate: Conv2d, Linear, multi-head/window-attention matrix operations, cosine-classifier matrix multiplication, and approximate 2D FFT work. Uses 2 FLOPs/MAC; excludes normalization, activation, softmax, pooling, and most elementwise operations.",
+      "flops_per_image": 169010688,
+      "hardware": "cuda (NVIDIA GeForce RTX 5070)",
+      "model": "swin_t_cifar",
+      "model_config": {
+        "classifier_type": "cosine",
+        "concept_dim": 32,
+        "concept_loss_weight": 0.1,
+        "concept_schema": "latent",
+        "depths": [
+          2,
+          2
+        ],
+        "dropout": 0.0,
+        "embed_dim": 96,
+        "image_size": 32,
+        "in_channels": 3,
+        "layer_norm_eps": 1e-06,
+        "mlp_ratio": 4.0,
+        "model_size": "tiny",
+        "model_type": "nesy-cvt",
+        "num_classes": 100,
+        "num_heads": 4,
+        "prototype_loss_weight": 0.05,
+        "reasoning_mode": "learned_projection",
+        "rule_loss_weight": 0.05,
+        "spectral_loss_weight": 0.01,
+        "spectral_mixer_mode": "residual_identity",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "use_concept_auxiliary": true,
+        "use_spectral_mixer": true,
+        "use_transformer": true
+      },
+      "model_size_mb": 110.672519,
+      "num_parameters": 27596254,
+      "platform": "Windows-11-10.0.26200-SP0",
+      "python": "3.12.6",
+      "pytorch": "2.13.0+cu132",
+      "run_dir": "runs\\cifar100-paper-v2-preflight\\swin_t_cifar\\seed-42",
+      "seed": 42,
+      "test": null,
+      "torchvision": "0.28.0+cu132",
+      "train_images_per_epoch": 45000,
+      "train_peak_gpu_memory_mb": 493.54296875,
+      "trainable_parameters": 27596254,
+      "training_seconds_including_validation": 88.03189169999678,
+      "validation": {
+        "auc_ovr_macro": 0.6812730303030302,
+        "batch_latency_mean_ms": 6.794303513545627,
+        "batch_latency_p50_ms": 6.729400018230081,
+        "batch_latency_p95_ms": 7.186300004832447,
+        "ece_15": 0.005314108759909873,
+        "evaluation_seconds": 2.5602275000419468,
+        "images": 5000,
+        "images_per_second": 1952.9514466656108,
+        "inference_fps": 2370.5284879524797,
+        "inference_latency_ms_per_image_batch": 0.4218468603445217,
+        "inference_seconds_batch": 2.1092343017226085,
+        "macro_f1": 0.008611621250090358,
+        "nll": 4.42376184463501,
+        "peak_gpu_memory_mb": 405.02294921875,
+        "pipeline_images_per_second": 1952.9514466656108,
+        "precision_macro": 0.006822278831096002,
+        "recall_macro": 0.0364,
+        "single_image_latency_mean_ms": 5.7434361553192135,
+        "single_image_latency_p50_ms": 5.650543928146362,
+        "single_image_latency_p95_ms": 6.493279933929443,
+        "single_image_latency_repeats": 100,
+        "top1": 0.0364,
+        "top5": 0.1322
+      },
+      "validation_images": 5000
+    }
+  ],
+  "validation_aggregate_mean_and_sample_std": {
+    "convnext_tiny_cifar": {
+      "auc_ovr_macro": {
+        "mean": 0.7509256161616161,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_mean_ms": {
+        "mean": 3.924989452088674,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_p50_ms": {
+        "mean": 3.8741999305784702,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_p95_ms": {
+        "mean": 4.387199995107949,
+        "n": 1,
+        "sample_std": null
+      },
+      "ece_15": {
+        "mean": 0.030628264878690244,
+        "n": 1,
+        "sample_std": null
+      },
+      "flops_g_per_image": {
+        "mean": 0.181980672,
+        "n": 1,
+        "sample_std": null
+      },
+      "flops_per_image": {
+        "mean": 181980672.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "images_per_second": {
+        "mean": 2951.798779056655,
+        "n": 1,
+        "sample_std": null
+      },
+      "inference_fps": {
+        "mean": 4131.627707586723,
+        "n": 1,
+        "sample_std": null
+      },
+      "inference_latency_ms_per_image_batch": {
+        "mean": 0.24203536009881646,
+        "n": 1,
+        "sample_std": null
+      },
+      "macro_f1": {
+        "mean": 0.02185098106073464,
+        "n": 1,
+        "sample_std": null
+      },
+      "model_size_mb": {
+        "mean": 111.644667,
+        "n": 1,
+        "sample_std": null
+      },
+      "nll": {
+        "mean": 4.218403339385986,
+        "n": 1,
+        "sample_std": null
+      },
+      "num_parameters": {
+        "mean": 27897028.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "peak_gpu_memory_mb": {
+        "mean": 395.52587890625,
+        "n": 1,
+        "sample_std": null
+      },
+      "precision_macro": {
+        "mean": 0.038290062806955356,
+        "n": 1,
+        "sample_std": null
+      },
+      "recall_macro": {
+        "mean": 0.054400000000000004,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_mean_ms": {
+        "mean": 2.952421450614929,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_p50_ms": {
+        "mean": 2.9306880235671997,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_p95_ms": {
+        "mean": 3.160799980163574,
+        "n": 1,
+        "sample_std": null
+      },
+      "top1": {
+        "mean": 0.0544,
+        "n": 1,
+        "sample_std": null
+      },
+      "top5": {
+        "mean": 0.2058,
+        "n": 1,
+        "sample_std": null
+      },
+      "trainable_parameters": {
+        "mean": 27897028.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "training_seconds_including_validation": {
+        "mean": 58.52423539990559,
+        "n": 1,
+        "sample_std": null
+      }
+    },
+    "nesy_cvt_no_concept_auxiliary": {
+      "auc_ovr_macro": {
+        "mean": 0.7220627272727274,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_mean_ms": {
+        "mean": 10.26580671477801,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_p50_ms": {
+        "mean": 10.298699955455959,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_p95_ms": {
+        "mean": 10.862600058317184,
+        "n": 1,
+        "sample_std": null
+      },
+      "ece_15": {
+        "mean": 0.028209914146177472,
+        "n": 1,
+        "sample_std": null
+      },
+      "flops_g_per_image": {
+        "mean": 2.56842624,
+        "n": 1,
+        "sample_std": null
+      },
+      "flops_per_image": {
+        "mean": 2568426240.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "images_per_second": {
+        "mean": 1368.6032612251238,
+        "n": 1,
+        "sample_std": null
+      },
+      "inference_fps": {
+        "mean": 1564.8295425776298,
+        "n": 1,
+        "sample_std": null
+      },
+      "inference_latency_ms_per_image_batch": {
+        "mean": 0.6390472398372367,
+        "n": 1,
+        "sample_std": null
+      },
+      "macro_f1": {
+        "mean": 0.026545369193080117,
+        "n": 1,
+        "sample_std": null
+      },
+      "model_size_mb": {
+        "mean": 1.951476,
+        "n": 1,
+        "sample_std": null
+      },
+      "nll": {
+        "mean": 4.349517345428467,
+        "n": 1,
+        "sample_std": null
+      },
+      "num_parameters": {
+        "mean": 481153.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "peak_gpu_memory_mb": {
+        "mean": 147.8388671875,
+        "n": 1,
+        "sample_std": null
+      },
+      "precision_macro": {
+        "mean": 0.02437890734295244,
+        "n": 1,
+        "sample_std": null
+      },
+      "recall_macro": {
+        "mean": 0.048,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_mean_ms": {
+        "mean": 2.168628476858139,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_p50_ms": {
+        "mean": 2.092415928840637,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_p95_ms": {
+        "mean": 2.5063679218292236,
+        "n": 1,
+        "sample_std": null
+      },
+      "top1": {
+        "mean": 0.048,
+        "n": 1,
+        "sample_std": null
+      },
+      "top5": {
+        "mean": 0.1902,
+        "n": 1,
+        "sample_std": null
+      },
+      "trainable_parameters": {
+        "mean": 481153.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "training_seconds_including_validation": {
+        "mean": 133.4834692000877,
+        "n": 1,
+        "sample_std": null
+      }
+    },
+    "nesy_cvt_tiny": {
+      "auc_ovr_macro": {
+        "mean": 0.7809779191919192,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_mean_ms": {
+        "mean": 10.746268056758558,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_p50_ms": {
+        "mean": 10.753799928352237,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_p95_ms": {
+        "mean": 11.388200102373958,
+        "n": 1,
+        "sample_std": null
+      },
+      "ece_15": {
+        "mean": 0.011578368792310355,
+        "n": 1,
+        "sample_std": null
+      },
+      "flops_g_per_image": {
+        "mean": 2.56843008,
+        "n": 1,
+        "sample_std": null
+      },
+      "flops_per_image": {
+        "mean": 2568430080.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "hierarchy_consistency_mae": {
+        "mean": 0.039508192877843976,
+        "n": 1,
+        "sample_std": null
+      },
+      "images_per_second": {
+        "mean": 1312.7685514071484,
+        "n": 1,
+        "sample_std": null
+      },
+      "inference_fps": {
+        "mean": 1556.564819042514,
+        "n": 1,
+        "sample_std": null
+      },
+      "inference_latency_ms_per_image_batch": {
+        "mean": 0.6424403197132051,
+        "n": 1,
+        "sample_std": null
+      },
+      "macro_f1": {
+        "mean": 0.027932469791816707,
+        "n": 1,
+        "sample_std": null
+      },
+      "model_size_mb": {
+        "mean": 1.960893,
+        "n": 1,
+        "sample_std": null
+      },
+      "nll": {
+        "mean": 4.165218830108643,
+        "n": 1,
+        "sample_std": null
+      },
+      "num_parameters": {
+        "mean": 483093.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "peak_gpu_memory_mb": {
+        "mean": 147.8955078125,
+        "n": 1,
+        "sample_std": null
+      },
+      "precision_macro": {
+        "mean": 0.04010374426404176,
+        "n": 1,
+        "sample_std": null
+      },
+      "recall_macro": {
+        "mean": 0.054000000000000006,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_mean_ms": {
+        "mean": 2.268826559782028,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_p50_ms": {
+        "mean": 2.1639519929885864,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_p95_ms": {
+        "mean": 2.647167921066284,
+        "n": 1,
+        "sample_std": null
+      },
+      "taxonomy_agreement": {
+        "mean": 0.8678,
+        "n": 1,
+        "sample_std": null
+      },
+      "top1": {
+        "mean": 0.054,
+        "n": 1,
+        "sample_std": null
+      },
+      "top5": {
+        "mean": 0.1954,
+        "n": 1,
+        "sample_std": null
+      },
+      "trainable_parameters": {
+        "mean": 483093.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "training_seconds_including_validation": {
+        "mean": 137.15929370000958,
+        "n": 1,
+        "sample_std": null
+      }
+    },
+    "swin_t_cifar": {
+      "auc_ovr_macro": {
+        "mean": 0.6812730303030302,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_mean_ms": {
+        "mean": 6.794303513545627,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_p50_ms": {
+        "mean": 6.729400018230081,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_p95_ms": {
+        "mean": 7.186300004832447,
+        "n": 1,
+        "sample_std": null
+      },
+      "ece_15": {
+        "mean": 0.005314108759909873,
+        "n": 1,
+        "sample_std": null
+      },
+      "flops_g_per_image": {
+        "mean": 0.169010688,
+        "n": 1,
+        "sample_std": null
+      },
+      "flops_per_image": {
+        "mean": 169010688.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "images_per_second": {
+        "mean": 1952.9514466656108,
+        "n": 1,
+        "sample_std": null
+      },
+      "inference_fps": {
+        "mean": 2370.5284879524797,
+        "n": 1,
+        "sample_std": null
+      },
+      "inference_latency_ms_per_image_batch": {
+        "mean": 0.4218468603445217,
+        "n": 1,
+        "sample_std": null
+      },
+      "macro_f1": {
+        "mean": 0.008611621250090358,
+        "n": 1,
+        "sample_std": null
+      },
+      "model_size_mb": {
+        "mean": 110.672519,
+        "n": 1,
+        "sample_std": null
+      },
+      "nll": {
+        "mean": 4.42376184463501,
+        "n": 1,
+        "sample_std": null
+      },
+      "num_parameters": {
+        "mean": 27596254.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "peak_gpu_memory_mb": {
+        "mean": 405.02294921875,
+        "n": 1,
+        "sample_std": null
+      },
+      "precision_macro": {
+        "mean": 0.006822278831096002,
+        "n": 1,
+        "sample_std": null
+      },
+      "recall_macro": {
+        "mean": 0.0364,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_mean_ms": {
+        "mean": 5.7434361553192135,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_p50_ms": {
+        "mean": 5.650543928146362,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_p95_ms": {
+        "mean": 6.493279933929443,
+        "n": 1,
+        "sample_std": null
+      },
+      "top1": {
+        "mean": 0.0364,
+        "n": 1,
+        "sample_std": null
+      },
+      "top5": {
+        "mean": 0.1322,
+        "n": 1,
+        "sample_std": null
+      },
+      "trainable_parameters": {
+        "mean": 27596254.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "training_seconds_including_validation": {
+        "mean": 88.03189169999678,
+        "n": 1,
+        "sample_std": null
+      }
+    },
+    "wide_resnet28x10_cifar": {
+      "auc_ovr_macro": {
+        "mean": 0.7463831313131313,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_mean_ms": {
+        "mean": 8.836080189258718,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_p50_ms": {
+        "mean": 8.82900005672127,
+        "n": 1,
+        "sample_std": null
+      },
+      "batch_latency_p95_ms": {
+        "mean": 9.386399993672967,
+        "n": 1,
+        "sample_std": null
+      },
+      "ece_15": {
+        "mean": 0.05607034811228514,
+        "n": 1,
+        "sample_std": null
+      },
+      "flops_g_per_image": {
+        "mean": 10.486772736,
+        "n": 1,
+        "sample_std": null
+      },
+      "flops_per_image": {
+        "mean": 10486772736.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "images_per_second": {
+        "mean": 1559.4598330191482,
+        "n": 1,
+        "sample_std": null
+      },
+      "inference_fps": {
+        "mean": 1819.7411047149608,
+        "n": 1,
+        "sample_std": null
+      },
+      "inference_latency_ms_per_image_batch": {
+        "mean": 0.5495287199970335,
+        "n": 1,
+        "sample_std": null
+      },
+      "macro_f1": {
+        "mean": 0.01375134110562066,
+        "n": 1,
+        "sample_std": null
+      },
+      "model_size_mb": {
+        "mean": 146.266639,
+        "n": 1,
+        "sample_std": null
+      },
+      "nll": {
+        "mean": 4.2500786781311035,
+        "n": 1,
+        "sample_std": null
+      },
+      "num_parameters": {
+        "mean": 36536884.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "peak_gpu_memory_mb": {
+        "mean": 545.91943359375,
+        "n": 1,
+        "sample_std": null
+      },
+      "precision_macro": {
+        "mean": 0.02699933614945551,
+        "n": 1,
+        "sample_std": null
+      },
+      "recall_macro": {
+        "mean": 0.0432,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_mean_ms": {
+        "mean": 2.4541023993492126,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_p50_ms": {
+        "mean": 2.3537280559539795,
+        "n": 1,
+        "sample_std": null
+      },
+      "single_image_latency_p95_ms": {
+        "mean": 2.7377281188964844,
+        "n": 1,
+        "sample_std": null
+      },
+      "top1": {
+        "mean": 0.0432,
+        "n": 1,
+        "sample_std": null
+      },
+      "top5": {
+        "mean": 0.1864,
+        "n": 1,
+        "sample_std": null
+      },
+      "trainable_parameters": {
+        "mean": 36536884.0,
+        "n": 1,
+        "sample_std": null
+      },
+      "training_seconds_including_validation": {
+        "mean": 99.94833289994858,
+        "n": 1,
+        "sample_std": null
+      }
+    }
+  }
+}

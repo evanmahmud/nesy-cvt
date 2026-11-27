@@ -24,7 +24,12 @@ RUN_PROTOCOL_KEYS = (
     "eval_transform",
     "batch_size",
     "optimizer",
+    "optimizer_momentum",
     "learning_rate",
+    "weight_decay",
+    "lr_schedule",
+    "grad_clip_norm",
+    "data_recipe",
     "epochs",
     "validation_split_seed",
     "validation_images_per_class",
@@ -56,6 +61,7 @@ RUN_METRICS = (
     "model_size_mb",
     "flops_per_image",
     "flops_g_per_image",
+    "train_peak_gpu_memory_mb",
     "training_seconds_including_validation",
 )
 CSV_FIELDS = (
@@ -80,6 +86,7 @@ CSV_FIELDS = (
     "inference_latency_ms_per_image_batch",
     "inference_fps",
     "pipeline_images_per_second",
+    "train_peak_gpu_memory_mb",
     "peak_gpu_memory_mb",
     "training_seconds_including_validation",
     "taxonomy_agreement",
@@ -103,6 +110,14 @@ def _load_run_metadata(run_dir: Path) -> dict[str, Any]:
         seed = int(metrics["seed"])
     except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
         raise ValueError(f"Missing or invalid training metadata in {run_dir}") from exc
+
+    # Defaults document the historical runner's actual defaults and preserve
+    # compatibility with pre-v2 manifests that did not serialize them.
+    config.setdefault("weight_decay", 0.01)
+    config.setdefault("optimizer_momentum", None)
+    config.setdefault("lr_schedule", "none")
+    config.setdefault("grad_clip_norm", 1.0)
+    config.setdefault("data_recipe", "legacy_v1")
 
     checkpoint = run_dir / "pytorch_model.bin"
     config_file = run_dir / "config.json"
@@ -192,10 +207,34 @@ def evaluate_saved_checkpoints(
         raise ValueError(f"Expected CIFAR-100 checkpoints, found {protocol['dataset']!r}")
 
     seeds_by_model: dict[str, set[int]] = {}
+    loss_weights_by_model: dict[str, dict[str, float]] = {}
+    weight_keys = (
+        "taxonomy_rule_weight",
+        "taxonomy_consistency_weight",
+        "concept_loss_weight",
+    )
+    model_weight_signatures: dict[str, set[tuple[float, ...]]] = {}
     for manifest in manifests:
         seeds_by_model.setdefault(manifest["model"], set()).add(manifest["seed"])
+        model_name = manifest["model"]
+        weight_signature = tuple(
+            float(manifest["config"].get(key, 0.0)) for key in weight_keys
+        )
+        model_weight_signatures.setdefault(model_name, set()).add(weight_signature)
+        loss_weights_by_model[model_name] = dict(zip(weight_keys, weight_signature))
     if len({tuple(sorted(seeds)) for seeds in seeds_by_model.values()}) != 1:
         raise ValueError("Each model must have the same seed set for a controlled comparison")
+    inconsistent_weights = [
+        model_name
+        for model_name, signatures in model_weight_signatures.items()
+        if len(signatures) != 1
+    ]
+    if inconsistent_weights:
+        raise ValueError(
+            "Loss weights must be consistent across seeds for each model: "
+            + ", ".join(sorted(inconsistent_weights))
+        )
+    protocol["component_loss_weights_by_model"] = loss_weights_by_model
 
     eval_batch_size = int(batch_size or protocol["batch_size"])
     if eval_batch_size <= 0:
@@ -206,9 +245,20 @@ def evaluate_saved_checkpoints(
     if device.type == "cuda":
         device_label = f"{device} ({torch.cuda.get_device_name(device)})"
 
-    eval_transform = transforms.Compose(
-        [transforms.Resize((32, 32)), transforms.ToTensor()]
-    )
+    if protocol["data_recipe"] == "cifar100_standard_v2":
+        eval_transform = transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=(0.5071, 0.4867, 0.4408),
+                    std=(0.2675, 0.2565, 0.2761),
+                ),
+            ]
+        )
+    else:
+        eval_transform = transforms.Compose(
+            [transforms.Resize((32, 32)), transforms.ToTensor()]
+        )
     test_base = datasets.CIFAR100(
         root=data_dir,
         train=False,
@@ -270,6 +320,7 @@ def evaluate_saved_checkpoints(
             "training_seconds_including_validation": old_metrics.get(
                 "training_seconds_including_validation"
             ),
+            "train_peak_gpu_memory_mb": old_metrics.get("train_peak_gpu_memory_mb"),
             "test": test_metrics,
             "num_parameters": parameter_count,
             "trainable_parameters": trainable_parameter_count,
@@ -324,6 +375,7 @@ def evaluate_saved_checkpoints(
                 "includes loading the test batches"
             ),
             "common_training_protocol": protocol,
+            "component_loss_weights_by_model": loss_weights_by_model,
             "selection_rule": "checkpoint selected by validation top-1 before test evaluation",
             "comparison_scope": (
                 "matched dataset, split, input size, and recorded recipe; this is a fixed-recipe "

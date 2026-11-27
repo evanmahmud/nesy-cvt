@@ -1,0 +1,1983 @@
+{
+  "aggregate_mean_and_sample_std": {
+    "mobilenet_v3_small": {
+      "auc_ovr_macro": {
+        "mean": 0.9582726700336701,
+        "n": 3,
+        "sample_std": 0.000284883469506758
+      },
+      "ece_15": {
+        "mean": 0.14795662197930118,
+        "n": 3,
+        "sample_std": 0.012120002884976012
+      },
+      "flops_g_per_image": {
+        "mean": 0.01118976,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "flops_per_image": {
+        "mean": 11189760.0,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "inference_fps": {
+        "mean": 4502.691855916131,
+        "n": 3,
+        "sample_std": 95.32333767166219
+      },
+      "inference_latency_ms_per_image_batch": {
+        "mean": 0.2221563599848499,
+        "n": 3,
+        "sample_std": 0.004746625570713427
+      },
+      "macro_f1": {
+        "mean": 0.4693827560132762,
+        "n": 3,
+        "sample_std": 0.00475537179779975
+      },
+      "model_size_mb": {
+        "mean": 6.604147,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "nll": {
+        "mean": 2.211472988128662,
+        "n": 3,
+        "sample_std": 0.023993684854640866
+      },
+      "num_parameters": {
+        "mean": 1620356.0,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "peak_gpu_memory_mb": {
+        "mean": 40.97998046875,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "pipeline_images_per_second": {
+        "mean": 3548.268252449828,
+        "n": 3,
+        "sample_std": 66.27771790346702
+      },
+      "precision_macro": {
+        "mean": 0.4770824874830195,
+        "n": 3,
+        "sample_std": 0.005356742477767492
+      },
+      "recall_macro": {
+        "mean": 0.47473333333333334,
+        "n": 3,
+        "sample_std": 0.004623130252689552
+      },
+      "single_image_latency_mean_ms": {
+        "mean": 3.51108917315801,
+        "n": 3,
+        "sample_std": 0.03879902227787097
+      },
+      "single_image_latency_p50_ms": {
+        "mean": 3.3841920296351113,
+        "n": 3,
+        "sample_std": 0.037301288381344985
+      },
+      "single_image_latency_p95_ms": {
+        "mean": 3.9974613984425864,
+        "n": 3,
+        "sample_std": 0.05151473855621653
+      },
+      "top1": {
+        "mean": 0.47473333333333334,
+        "n": 3,
+        "sample_std": 0.004623130252689569
+      },
+      "top5": {
+        "mean": 0.7594,
+        "n": 3,
+        "sample_std": 0.004513313638558718
+      },
+      "trainable_parameters": {
+        "mean": 1620356.0,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "training_seconds_including_validation": {
+        "mean": 2321.084577766664,
+        "n": 3,
+        "sample_std": 12.057153702621358
+      }
+    },
+    "nesy_cvt": {
+      "auc_ovr_macro": {
+        "mean": 0.9798307508417508,
+        "n": 3,
+        "sample_std": 0.0007620295610181046
+      },
+      "ece_15": {
+        "mean": 0.0884473398489257,
+        "n": 3,
+        "sample_std": 0.004276390004466597
+      },
+      "flops_g_per_image": {
+        "mean": 2.568432384,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "flops_per_image": {
+        "mean": 2568432384.0,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "inference_fps": {
+        "mean": 1567.499749522536,
+        "n": 3,
+        "sample_std": 2.1201845429955135
+      },
+      "inference_latency_ms_per_image_batch": {
+        "mean": 0.6379594133080294,
+        "n": 3,
+        "sample_std": 0.0008635327943057911
+      },
+      "macro_f1": {
+        "mean": 0.5806298415350938,
+        "n": 3,
+        "sample_std": 0.0066420193512530265
+      },
+      "model_size_mb": {
+        "mean": 1.977597,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "nll": {
+        "mean": 1.580338954925537,
+        "n": 3,
+        "sample_std": 0.026339530638103837
+      },
+      "num_parameters": {
+        "mean": 487457.0,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "peak_gpu_memory_mb": {
+        "mean": 112.07373046875,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "pipeline_images_per_second": {
+        "mean": 1430.7163597016372,
+        "n": 3,
+        "sample_std": 2.1405777321111734
+      },
+      "precision_macro": {
+        "mean": 0.5933373168724687,
+        "n": 3,
+        "sample_std": 0.008278244125438788
+      },
+      "recall_macro": {
+        "mean": 0.5826333333333333,
+        "n": 3,
+        "sample_std": 0.006986653944008772
+      },
+      "single_image_latency_mean_ms": {
+        "mean": 2.1975762148698172,
+        "n": 3,
+        "sample_std": 0.03898304420433221
+      },
+      "single_image_latency_p50_ms": {
+        "mean": 2.1357173124949136,
+        "n": 3,
+        "sample_std": 0.11009981259101545
+      },
+      "single_image_latency_p95_ms": {
+        "mean": 2.653653383255005,
+        "n": 3,
+        "sample_std": 0.14365795635806902
+      },
+      "top1": {
+        "mean": 0.5826333333333333,
+        "n": 3,
+        "sample_std": 0.006986653944008772
+      },
+      "top5": {
+        "mean": 0.8510333333333333,
+        "n": 3,
+        "sample_std": 0.0031085902485424597
+      },
+      "trainable_parameters": {
+        "mean": 487457.0,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "training_seconds_including_validation": {
+        "mean": 6290.604350600001,
+        "n": 3,
+        "sample_std": 21.447511243200072
+      }
+    },
+    "nesy_cvt_coarse_concepts": {
+      "auc_ovr_macro": {
+        "mean": 0.9804989090909091,
+        "n": 3,
+        "sample_std": 0.0008475101848004334
+      },
+      "coarse_top1": {
+        "mean": 0.6779333333333334,
+        "n": 3,
+        "sample_std": 0.004389001405027525
+      },
+      "ece_15": {
+        "mean": 0.08893073266719778,
+        "n": 3,
+        "sample_std": 0.004672605949694293
+      },
+      "flops_g_per_image": {
+        "mean": 2.56843008,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "flops_per_image": {
+        "mean": 2568430080.0,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "inference_fps": {
+        "mean": 1565.5516674939304,
+        "n": 3,
+        "sample_std": 0.23843178308576668
+      },
+      "inference_latency_ms_per_image_batch": {
+        "mean": 0.6387524833747497,
+        "n": 3,
+        "sample_std": 9.728083331306017e-05
+      },
+      "macro_f1": {
+        "mean": 0.5827638136416331,
+        "n": 3,
+        "sample_std": 0.005249028447609789
+      },
+      "model_size_mb": {
+        "mean": 1.968125,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "nll": {
+        "mean": 1.5594337781270344,
+        "n": 3,
+        "sample_std": 0.03298992222017007
+      },
+      "num_parameters": {
+        "mean": 485093.0,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "peak_gpu_memory_mb": {
+        "mean": 112.064453125,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "pipeline_images_per_second": {
+        "mean": 1419.7114310777652,
+        "n": 3,
+        "sample_std": 1.0103439355990775
+      },
+      "precision_macro": {
+        "mean": 0.5942681536654802,
+        "n": 3,
+        "sample_std": 0.0034818800170535887
+      },
+      "recall_macro": {
+        "mean": 0.5859333333333333,
+        "n": 3,
+        "sample_std": 0.00517332903779892
+      },
+      "single_image_latency_mean_ms": {
+        "mean": 2.219082771142324,
+        "n": 3,
+        "sample_std": 0.03418755823241145
+      },
+      "single_image_latency_p50_ms": {
+        "mean": 2.076362689336141,
+        "n": 3,
+        "sample_std": 0.013625562671855444
+      },
+      "single_image_latency_p95_ms": {
+        "mean": 2.7477120558420816,
+        "n": 3,
+        "sample_std": 0.20758415762791949
+      },
+      "top1": {
+        "mean": 0.5859333333333333,
+        "n": 3,
+        "sample_std": 0.005173329037798945
+      },
+      "top5": {
+        "mean": 0.8549,
+        "n": 3,
+        "sample_std": 0.0039038442591886407
+      },
+      "trainable_parameters": {
+        "mean": 485093.0,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "training_seconds_including_validation": {
+        "mean": 6280.2950199,
+        "n": 3,
+        "sample_std": 3.6694247317488777
+      }
+    },
+    "resnet18_cifar": {
+      "auc_ovr_macro": {
+        "mean": 0.9792848939393939,
+        "n": 3,
+        "sample_std": 0.0004231357397148594
+      },
+      "ece_15": {
+        "mean": 0.21954238596459227,
+        "n": 3,
+        "sample_std": 0.0008791708067698181
+      },
+      "flops_g_per_image": {
+        "mean": 1.1109376,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "flops_per_image": {
+        "mean": 1110937600.0,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "inference_fps": {
+        "mean": 9002.434883187503,
+        "n": 3,
+        "sample_std": 77.39653195616651
+      },
+      "inference_latency_ms_per_image_batch": {
+        "mean": 0.11108656002907083,
+        "n": 3,
+        "sample_std": 0.0009597922855851906
+      },
+      "macro_f1": {
+        "mean": 0.6105629625727406,
+        "n": 3,
+        "sample_std": 0.004500572532350259
+      },
+      "model_size_mb": {
+        "mean": 44.956299,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "nll": {
+        "mean": 2.067002852757772,
+        "n": 3,
+        "sample_std": 0.03592487991688119
+      },
+      "num_parameters": {
+        "mean": 11220132.0,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "peak_gpu_memory_mb": {
+        "mean": 99.18798828125,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "pipeline_images_per_second": {
+        "mean": 5886.553314805744,
+        "n": 3,
+        "sample_std": 18.285681679133926
+      },
+      "precision_macro": {
+        "mean": 0.6241296515369733,
+        "n": 3,
+        "sample_std": 0.004234068600845397
+      },
+      "recall_macro": {
+        "mean": 0.6124999999999999,
+        "n": 3,
+        "sample_std": 0.004603259714593566
+      },
+      "single_image_latency_mean_ms": {
+        "mean": 1.735563839673996,
+        "n": 3,
+        "sample_std": 0.00514249738659608
+      },
+      "single_image_latency_p50_ms": {
+        "mean": 1.6621280113855998,
+        "n": 3,
+        "sample_std": 0.018460134002511844
+      },
+      "single_image_latency_p95_ms": {
+        "mean": 2.072810649871826,
+        "n": 3,
+        "sample_std": 0.10791994424260382
+      },
+      "top1": {
+        "mean": 0.6125,
+        "n": 3,
+        "sample_std": 0.004603259714593602
+      },
+      "top5": {
+        "mean": 0.8545666666666667,
+        "n": 3,
+        "sample_std": 0.0048644972333564945
+      },
+      "trainable_parameters": {
+        "mean": 11220132.0,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "training_seconds_including_validation": {
+        "mean": 1673.9736890999968,
+        "n": 3,
+        "sample_std": 14.68199614651555
+      }
+    },
+    "vit_tiny_patch4": {
+      "auc_ovr_macro": {
+        "mean": 0.944774021885522,
+        "n": 3,
+        "sample_std": 0.004520806493244391
+      },
+      "ece_15": {
+        "mean": 0.16210262806266548,
+        "n": 3,
+        "sample_std": 0.006076977149711263
+      },
+      "flops_g_per_image": {
+        "mean": 0.141586432,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "flops_per_image": {
+        "mean": 141586432.0,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "inference_fps": {
+        "mean": 8951.205839317974,
+        "n": 3,
+        "sample_std": 112.40416894430946
+      },
+      "inference_latency_ms_per_image_batch": {
+        "mean": 0.11172846670961008,
+        "n": 3,
+        "sample_std": 0.0013945806929404354
+      },
+      "macro_f1": {
+        "mean": 0.4002542674009363,
+        "n": 3,
+        "sample_std": 0.02255590492456445
+      },
+      "model_size_mb": {
+        "mean": 4.106935,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "nll": {
+        "mean": 2.5377471446990967,
+        "n": 3,
+        "sample_std": 0.07918966529170096
+      },
+      "num_parameters": {
+        "mean": 1020132.0,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "peak_gpu_memory_mb": {
+        "mean": 41.67138671875,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "pipeline_images_per_second": {
+        "mean": 5848.0171726181,
+        "n": 3,
+        "sample_std": 59.7425263495458
+      },
+      "precision_macro": {
+        "mean": 0.4099884473642565,
+        "n": 3,
+        "sample_std": 0.023854117200390542
+      },
+      "recall_macro": {
+        "mean": 0.4030666666666667,
+        "n": 3,
+        "sample_std": 0.022150921726495562
+      },
+      "single_image_latency_mean_ms": {
+        "mean": 1.710881493886312,
+        "n": 3,
+        "sample_std": 0.016059041882558734
+      },
+      "single_image_latency_p50_ms": {
+        "mean": 1.6410720149676006,
+        "n": 3,
+        "sample_std": 0.03496215419974768
+      },
+      "single_image_latency_p95_ms": {
+        "mean": 2.061621308326721,
+        "n": 3,
+        "sample_std": 0.20079676691865464
+      },
+      "top1": {
+        "mean": 0.4030666666666667,
+        "n": 3,
+        "sample_std": 0.022150921726495562
+      },
+      "top5": {
+        "mean": 0.7031999999999999,
+        "n": 3,
+        "sample_std": 0.020300492604860613
+      },
+      "trainable_parameters": {
+        "mean": 1020132.0,
+        "n": 3,
+        "sample_std": 0.0
+      },
+      "training_seconds_including_validation": {
+        "mean": 1832.236204799997,
+        "n": 3,
+        "sample_std": 4.952555554970933
+      }
+    }
+  },
+  "benchmark_name": "CIFAR-100 saved-checkpoint detailed comparison",
+  "cuda_runtime": "13.2",
+  "evaluation_only": true,
+  "hardware": "cuda (NVIDIA GeForce RTX 5070)",
+  "protocol": {
+    "auc": "macro one-vs-rest ROC AUC computed from softmax probabilities",
+    "batch_size": 16,
+    "checkpoint_count": 15,
+    "class_metrics": "unweighted macro averages across 100 one-vs-rest classes",
+    "common_training_protocol": {
+      "batch_size": 16,
+      "dataset": "CIFAR-100 fine labels",
+      "epochs": 50,
+      "eval_transform": "Resize(32), ToTensor",
+      "input_size": 32,
+      "learning_rate": 0.0003,
+      "optimizer": "AdamW",
+      "precision": "float32",
+      "train_transform": "Resize(32), AutoAugment(CIFAR10 policy), ToTensor",
+      "validation_images_per_class": 50,
+      "validation_split_seed": 1729
+    },
+    "comparison_scope": "matched dataset, split, input size, and recorded recipe; this is a fixed-recipe comparison, not a claim that each architecture received its individually optimal recipe",
+    "dataset": "CIFAR-100 fine labels",
+    "flops_method": "Analytical estimate: Conv2d, Linear, multi-head/window-attention matrix operations, cosine-classifier matrix multiplication, and approximate 2D FFT work. Uses 2 FLOPs/MAC; excludes normalization, activation, softmax, pooling, and most elementwise operations.",
+    "inference_precision": "float32",
+    "inference_timing": "single-image latency is measured on-device at batch size 1; batched inference FPS is model-only wall time at the reported batch size; pipeline throughput includes loading the test batches",
+    "models": [
+      "mobilenet_v3_small",
+      "nesy_cvt",
+      "nesy_cvt_coarse_concepts",
+      "resnet18_cifar",
+      "vit_tiny_patch4"
+    ],
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "selection_rule": "checkpoint selected by validation top-1 before test evaluation",
+    "test": "same official CIFAR-100 10,000-image test split for every checkpoint",
+    "test_data_sha256": "775ca07a75a92b813336f7cb4f5db75fbf720ab9b09bfa67aedc3b180644782a",
+    "test_examples": 10000,
+    "test_set_history": "Test images were excluded from training and validation, but earlier pilot and pipeline runs inspected this official test split. It is not a pristine blinded confirmatory set for this project.",
+    "train_validation": "same stratified 45,000/5,000 split from the official 50,000-image training set; split seed 1729, 50 validation images per class"
+  },
+  "python": "3.12.6",
+  "pytorch": "2.13.0+cu132",
+  "runs": [
+    {
+      "best_epoch_by_validation_top1": 50,
+      "best_validation_top1": 0.4744,
+      "checkpoint_bytes": 6604147,
+      "checkpoint_sha256": "1cafc3fa70ae17f21693fcf59f3fe78d56e867f016f8f8148cf3c48dd8cbb5ba",
+      "config": {
+        "batch_size": 16,
+        "concept_supervision": "none; latent auxiliary class head",
+        "dataloader_workers": 0,
+        "dataset": "CIFAR-100 fine labels",
+        "epochs": 50,
+        "eval_transform": "Resize(32), ToTensor",
+        "input_size": 32,
+        "learning_rate": 0.0003,
+        "optimizer": "AdamW",
+        "precision": "float32",
+        "test_evaluated": true,
+        "train_transform": "Resize(32), AutoAugment(CIFAR10 policy), ToTensor",
+        "validation_images_per_class": 50,
+        "validation_split_seed": 1729
+      },
+      "flops_breakdown": {
+        "conv2d": 9805312,
+        "linear": 1384448
+      },
+      "flops_g_per_image": 0.01118976,
+      "flops_method": "Analytical estimate: Conv2d, Linear, multi-head/window-attention matrix operations, cosine-classifier matrix multiplication, and approximate 2D FFT work. Uses 2 FLOPs/MAC; excludes normalization, activation, softmax, pooling, and most elementwise operations.",
+      "flops_per_image": 11189760,
+      "model": "mobilenet_v3_small",
+      "model_config": {
+        "classifier_type": "cosine",
+        "concept_dim": 32,
+        "concept_loss_weight": 0.1,
+        "concept_schema": "latent",
+        "depths": [
+          2,
+          2
+        ],
+        "dropout": 0.0,
+        "embed_dim": 96,
+        "image_size": 32,
+        "in_channels": 3,
+        "layer_norm_eps": 1e-06,
+        "mlp_ratio": 4.0,
+        "model_size": "tiny",
+        "model_type": "nesy-cvt",
+        "num_classes": 100,
+        "num_heads": 4,
+        "prototype_loss_weight": 0.05,
+        "reasoning_mode": "learned_projection",
+        "rule_loss_weight": 0.05,
+        "spectral_loss_weight": 0.01,
+        "spectral_mixer_mode": "residual_identity",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "use_concept_auxiliary": true,
+        "use_spectral_mixer": true,
+        "use_transformer": true
+      },
+      "model_size_mb": 6.604147,
+      "num_parameters": 1620356,
+      "run_dir": "runs\\cifar100-final-benchmark\\mobilenet_v3_small\\seed-42",
+      "seed": 42,
+      "test": {
+        "auc_ovr_macro": 0.9581533737373737,
+        "batch_latency_mean_ms": 3.693491839058697,
+        "batch_latency_p50_ms": 3.5293999826535583,
+        "batch_latency_p95_ms": 3.9186999201774597,
+        "ece_15": 0.1588938876170665,
+        "evaluation_seconds": 2.878270099987276,
+        "images": 10000,
+        "images_per_second": 3474.309099776358,
+        "inference_fps": 4395.909117402682,
+        "inference_latency_ms_per_image_batch": 0.22748422983568162,
+        "inference_seconds_batch": 2.274842298356816,
+        "macro_f1": 0.46389758381625434,
+        "nll": 2.2385506629943848,
+        "peak_gpu_memory_mb": 40.97998046875,
+        "pipeline_images_per_second": 3474.309099776358,
+        "precision_macro": 0.47093588526698554,
+        "recall_macro": 0.4694,
+        "single_image_latency_mean_ms": 3.546270396709442,
+        "single_image_latency_p50_ms": 3.3802400827407837,
+        "single_image_latency_p95_ms": 4.052256107330322,
+        "single_image_latency_repeats": 100,
+        "top1": 0.4694,
+        "top5": 0.7542
+      },
+      "trainable_parameters": 1620356,
+      "training_seconds_including_validation": 2314.695459099996
+    },
+    {
+      "best_epoch_by_validation_top1": 50,
+      "best_validation_top1": 0.4746,
+      "checkpoint_bytes": 6604147,
+      "checkpoint_sha256": "0887a046e1b3450c8bb24e4b2c9ff7680130ed60f5cdcb0ec1f13a53b8a86786",
+      "config": {
+        "batch_size": 16,
+        "concept_supervision": "none; latent auxiliary class head",
+        "dataloader_workers": 0,
+        "dataset": "CIFAR-100 fine labels",
+        "epochs": 50,
+        "eval_transform": "Resize(32), ToTensor",
+        "input_size": 32,
+        "learning_rate": 0.0003,
+        "optimizer": "AdamW",
+        "precision": "float32",
+        "test_evaluated": true,
+        "train_transform": "Resize(32), AutoAugment(CIFAR10 policy), ToTensor",
+        "validation_images_per_class": 50,
+        "validation_split_seed": 1729
+      },
+      "flops_breakdown": {
+        "conv2d": 9805312,
+        "linear": 1384448
+      },
+      "flops_g_per_image": 0.01118976,
+      "flops_method": "Analytical estimate: Conv2d, Linear, multi-head/window-attention matrix operations, cosine-classifier matrix multiplication, and approximate 2D FFT work. Uses 2 FLOPs/MAC; excludes normalization, activation, softmax, pooling, and most elementwise operations.",
+      "flops_per_image": 11189760,
+      "model": "mobilenet_v3_small",
+      "model_config": {
+        "classifier_type": "cosine",
+        "concept_dim": 32,
+        "concept_loss_weight": 0.1,
+        "concept_schema": "latent",
+        "depths": [
+          2,
+          2
+        ],
+        "dropout": 0.0,
+        "embed_dim": 96,
+        "image_size": 32,
+        "in_channels": 3,
+        "layer_norm_eps": 1e-06,
+        "mlp_ratio": 4.0,
+        "model_size": "tiny",
+        "model_type": "nesy-cvt",
+        "num_classes": 100,
+        "num_heads": 4,
+        "prototype_loss_weight": 0.05,
+        "reasoning_mode": "learned_projection",
+        "rule_loss_weight": 0.05,
+        "spectral_loss_weight": 0.01,
+        "spectral_mixer_mode": "residual_identity",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "use_concept_auxiliary": true,
+        "use_spectral_mixer": true,
+        "use_transformer": true
+      },
+      "model_size_mb": 6.604147,
+      "num_parameters": 1620356,
+      "run_dir": "runs\\cifar100-final-benchmark\\mobilenet_v3_small\\seed-43",
+      "seed": 43,
+      "test": {
+        "auc_ovr_macro": 0.9585978080808082,
+        "batch_latency_mean_ms": 3.5476502371951937,
+        "batch_latency_p50_ms": 3.503600019030273,
+        "batch_latency_p95_ms": 3.8729000370949507,
+        "ece_15": 0.15004951249957085,
+        "evaluation_seconds": 2.7760156999574974,
+        "images": 10000,
+        "images_per_second": 3602.285102405259,
+        "inference_fps": 4579.2051578676355,
+        "inference_latency_ms_per_image_batch": 0.21837851013988258,
+        "inference_seconds_batch": 2.1837851013988256,
+        "macro_f1": 0.47190573926100193,
+        "nll": 2.2030131816864014,
+        "peak_gpu_memory_mb": 40.97998046875,
+        "pipeline_images_per_second": 3602.285102405259,
+        "precision_macro": 0.47955649661586636,
+        "recall_macro": 0.4772,
+        "single_image_latency_mean_ms": 3.469476170539856,
+        "single_image_latency_p50_ms": 3.3490240573883057,
+        "single_image_latency_p95_ms": 3.990112066268921,
+        "single_image_latency_repeats": 100,
+        "top1": 0.4772,
+        "top5": 0.7623
+      },
+      "trainable_parameters": 1620356,
+      "training_seconds_including_validation": 2313.5665590999997
+    },
+    {
+      "best_epoch_by_validation_top1": 50,
+      "best_validation_top1": 0.4768,
+      "checkpoint_bytes": 6604147,
+      "checkpoint_sha256": "946c9d971922639ef89f328ba56c4b3086cd12ae20f0135aa13f24ff012502b5",
+      "config": {
+        "batch_size": 16,
+        "concept_supervision": "none; latent auxiliary class head",
+        "dataloader_workers": 0,
+        "dataset": "CIFAR-100 fine labels",
+        "epochs": 50,
+        "eval_transform": "Resize(32), ToTensor",
+        "input_size": 32,
+        "learning_rate": 0.0003,
+        "optimizer": "AdamW",
+        "precision": "float32",
+        "test_evaluated": true,
+        "train_transform": "Resize(32), AutoAugment(CIFAR10 policy), ToTensor",
+        "validation_images_per_class": 50,
+        "validation_split_seed": 1729
+      },
+      "flops_breakdown": {
+        "conv2d": 9805312,
+        "linear": 1384448
+      },
+      "flops_g_per_image": 0.01118976,
+      "flops_method": "Analytical estimate: Conv2d, Linear, multi-head/window-attention matrix operations, cosine-classifier matrix multiplication, and approximate 2D FFT work. Uses 2 FLOPs/MAC; excludes normalization, activation, softmax, pooling, and most elementwise operations.",
+      "flops_per_image": 11189760,
+      "model": "mobilenet_v3_small",
+      "model_config": {
+        "classifier_type": "cosine",
+        "concept_dim": 32,
+        "concept_loss_weight": 0.1,
+        "concept_schema": "latent",
+        "depths": [
+          2,
+          2
+        ],
+        "dropout": 0.0,
+        "embed_dim": 96,
+        "image_size": 32,
+        "in_channels": 3,
+        "layer_norm_eps": 1e-06,
+        "mlp_ratio": 4.0,
+        "model_size": "tiny",
+        "model_type": "nesy-cvt",
+        "num_classes": 100,
+        "num_heads": 4,
+        "prototype_loss_weight": 0.05,
+        "reasoning_mode": "learned_projection",
+        "rule_loss_weight": 0.05,
+        "spectral_loss_weight": 0.01,
+        "spectral_mixer_mode": "residual_identity",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "use_concept_auxiliary": true,
+        "use_spectral_mixer": true,
+        "use_transformer": true
+      },
+      "model_size_mb": 6.604147,
+      "num_parameters": 1620356,
+      "run_dir": "runs\\cifar100-final-benchmark\\mobilenet_v3_small\\seed-44",
+      "seed": 44,
+      "test": {
+        "auc_ovr_macro": 0.9580668282828283,
+        "batch_latency_mean_ms": 3.5826881606131793,
+        "batch_latency_p50_ms": 3.517800010740757,
+        "batch_latency_p95_ms": 3.937699948437512,
+        "ece_15": 0.1349264658212662,
+        "evaluation_seconds": 2.8025252000661567,
+        "images": 10000,
+        "images_per_second": 3568.2105551678674,
+        "inference_fps": 4532.961292478077,
+        "inference_latency_ms_per_image_batch": 0.2206063399789855,
+        "inference_seconds_batch": 2.206063399789855,
+        "macro_f1": 0.47234494496257234,
+        "nll": 2.1928551197052,
+        "peak_gpu_memory_mb": 40.97998046875,
+        "pipeline_images_per_second": 3568.2105551678674,
+        "precision_macro": 0.48075508056620664,
+        "recall_macro": 0.47759999999999997,
+        "single_image_latency_mean_ms": 3.5175209522247313,
+        "single_image_latency_p50_ms": 3.423311948776245,
+        "single_image_latency_p95_ms": 3.9500160217285156,
+        "single_image_latency_repeats": 100,
+        "top1": 0.4776,
+        "top5": 0.7617
+      },
+      "trainable_parameters": 1620356,
+      "training_seconds_including_validation": 2334.9917150999972
+    },
+    {
+      "best_epoch_by_validation_top1": 46,
+      "best_validation_top1": 0.5834,
+      "checkpoint_bytes": 1977597,
+      "checkpoint_sha256": "3bb8f939a2977eea01ff0eddb85332a163a13bd50bb035b5004971403188b5c2",
+      "config": {
+        "batch_size": 16,
+        "concept_supervision": "none; latent auxiliary class head",
+        "dataloader_workers": 0,
+        "dataset": "CIFAR-100 fine labels",
+        "epochs": 50,
+        "eval_transform": "Resize(32), ToTensor",
+        "input_size": 32,
+        "learning_rate": 0.0003,
+        "optimizer": "AdamW",
+        "precision": "float32",
+        "test_evaluated": true,
+        "train_transform": "Resize(32), AutoAugment(CIFAR10 policy), ToTensor",
+        "validation_images_per_class": 50,
+        "validation_split_seed": 1729
+      },
+      "flops_breakdown": {
+        "conv2d": 46596096,
+        "cosine_classifier": 19200,
+        "linear": 603985920,
+        "multihead_attention": 1912602624,
+        "spectral_fft_estimate": 5228544
+      },
+      "flops_g_per_image": 2.568432384,
+      "flops_method": "Analytical estimate: Conv2d, Linear, multi-head/window-attention matrix operations, cosine-classifier matrix multiplication, and approximate 2D FFT work. Uses 2 FLOPs/MAC; excludes normalization, activation, softmax, pooling, and most elementwise operations.",
+      "flops_per_image": 2568432384,
+      "model": "nesy_cvt",
+      "model_config": {
+        "classifier_type": "cosine",
+        "concept_dim": 32,
+        "concept_loss_weight": 0.1,
+        "concept_schema": "latent",
+        "depths": [
+          2,
+          2
+        ],
+        "dropout": 0.0,
+        "embed_dim": 96,
+        "image_size": 32,
+        "in_channels": 3,
+        "layer_norm_eps": 1e-06,
+        "mlp_ratio": 4.0,
+        "model_size": "tiny",
+        "model_type": "nesy-cvt",
+        "num_classes": 100,
+        "num_heads": 4,
+        "prototype_loss_weight": 0.05,
+        "reasoning_mode": "learned_projection",
+        "rule_loss_weight": 0.05,
+        "spectral_loss_weight": 0.01,
+        "spectral_mixer_mode": "residual_identity",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "use_concept_auxiliary": true,
+        "use_spectral_mixer": true,
+        "use_transformer": true
+      },
+      "model_size_mb": 1.977597,
+      "num_parameters": 487457,
+      "run_dir": "runs\\cifar100-final-benchmark\\nesy_cvt\\seed-42",
+      "seed": 42,
+      "test": {
+        "auc_ovr_macro": 0.9789748585858585,
+        "batch_latency_mean_ms": 10.255989439226687,
+        "batch_latency_p50_ms": 10.26020001154393,
+        "batch_latency_p95_ms": 10.727499960921705,
+        "ece_15": 0.09055425333008174,
+        "evaluation_seconds": 6.984830999979749,
+        "images": 10000,
+        "images_per_second": 1431.673865842852,
+        "inference_fps": 1568.4742693423545,
+        "inference_latency_ms_per_image_batch": 0.6375622600549832,
+        "inference_seconds_batch": 6.375622600549832,
+        "macro_f1": 0.5745355936212944,
+        "nll": 1.6073335409164429,
+        "peak_gpu_memory_mb": 112.07373046875,
+        "pipeline_images_per_second": 1431.673865842852,
+        "precision_macro": 0.5837797441943671,
+        "recall_macro": 0.5785,
+        "single_image_latency_mean_ms": 2.2315113592147826,
+        "single_image_latency_p50_ms": 2.2626399993896484,
+        "single_image_latency_p95_ms": 2.6576640605926514,
+        "single_image_latency_repeats": 100,
+        "top1": 0.5785,
+        "top5": 0.8478
+      },
+      "trainable_parameters": 487457,
+      "training_seconds_including_validation": 6265.911344800006
+    },
+    {
+      "best_epoch_by_validation_top1": 47,
+      "best_validation_top1": 0.5842,
+      "checkpoint_bytes": 1977597,
+      "checkpoint_sha256": "f27514c39dcf030c40b1fa32b440463833cc3d2b80ae85fdd53df518c5d1a733",
+      "config": {
+        "batch_size": 16,
+        "concept_supervision": "none; latent auxiliary class head",
+        "dataloader_workers": 0,
+        "dataset": "CIFAR-100 fine labels",
+        "epochs": 50,
+        "eval_transform": "Resize(32), ToTensor",
+        "input_size": 32,
+        "learning_rate": 0.0003,
+        "optimizer": "AdamW",
+        "precision": "float32",
+        "test_evaluated": true,
+        "train_transform": "Resize(32), AutoAugment(CIFAR10 policy), ToTensor",
+        "validation_images_per_class": 50,
+        "validation_split_seed": 1729
+      },
+      "flops_breakdown": {
+        "conv2d": 46596096,
+        "cosine_classifier": 19200,
+        "linear": 603985920,
+        "multihead_attention": 1912602624,
+        "spectral_fft_estimate": 5228544
+      },
+      "flops_g_per_image": 2.568432384,
+      "flops_method": "Analytical estimate: Conv2d, Linear, multi-head/window-attention matrix operations, cosine-classifier matrix multiplication, and approximate 2D FFT work. Uses 2 FLOPs/MAC; excludes normalization, activation, softmax, pooling, and most elementwise operations.",
+      "flops_per_image": 2568432384,
+      "model": "nesy_cvt",
+      "model_config": {
+        "classifier_type": "cosine",
+        "concept_dim": 32,
+        "concept_loss_weight": 0.1,
+        "concept_schema": "latent",
+        "depths": [
+          2,
+          2
+        ],
+        "dropout": 0.0,
+        "embed_dim": 96,
+        "image_size": 32,
+        "in_channels": 3,
+        "layer_norm_eps": 1e-06,
+        "mlp_ratio": 4.0,
+        "model_size": "tiny",
+        "model_type": "nesy-cvt",
+        "num_classes": 100,
+        "num_heads": 4,
+        "prototype_loss_weight": 0.05,
+        "reasoning_mode": "learned_projection",
+        "rule_loss_weight": 0.05,
+        "spectral_loss_weight": 0.01,
+        "spectral_mixer_mode": "residual_identity",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "use_concept_auxiliary": true,
+        "use_spectral_mixer": true,
+        "use_transformer": true
+      },
+      "model_size_mb": 1.977597,
+      "num_parameters": 487457,
+      "run_dir": "runs\\cifar100-final-benchmark\\nesy_cvt\\seed-43",
+      "seed": 43,
+      "test": {
+        "auc_ovr_macro": 0.9800818484848485,
+        "batch_latency_mean_ms": 10.278353761509061,
+        "batch_latency_p50_ms": 10.299400077201426,
+        "batch_latency_p95_ms": 10.800899937748909,
+        "ece_15": 0.09126146609485151,
+        "evaluation_seconds": 7.001505900057964,
+        "images": 10000,
+        "images_per_second": 1428.2641681294895,
+        "inference_fps": 1565.0675176753116,
+        "inference_latency_ms_per_image_batch": 0.6389500700170174,
+        "inference_seconds_batch": 6.389500700170174,
+        "macro_f1": 0.5796444070192267,
+        "nll": 1.5789759159088135,
+        "peak_gpu_memory_mb": 112.07373046875,
+        "pipeline_images_per_second": 1428.2641681294895,
+        "precision_macro": 0.5979785198641786,
+        "recall_macro": 0.5787,
+        "single_image_latency_mean_ms": 2.1549964928627015,
+        "single_image_latency_p50_ms": 2.0785759687423706,
+        "single_image_latency_p95_ms": 2.5080320835113525,
+        "single_image_latency_repeats": 100,
+        "top1": 0.5787,
+        "top5": 0.854
+      },
+      "trainable_parameters": 487457,
+      "training_seconds_including_validation": 6301.3115435999935
+    },
+    {
+      "best_epoch_by_validation_top1": 46,
+      "best_validation_top1": 0.5952,
+      "checkpoint_bytes": 1977597,
+      "checkpoint_sha256": "89165dbcb08754d38a82519340c09515730b46053fa150871a0e7c684d6afb9e",
+      "config": {
+        "batch_size": 16,
+        "concept_supervision": "none; latent auxiliary class head",
+        "dataloader_workers": 0,
+        "dataset": "CIFAR-100 fine labels",
+        "epochs": 50,
+        "eval_transform": "Resize(32), ToTensor",
+        "input_size": 32,
+        "learning_rate": 0.0003,
+        "optimizer": "AdamW",
+        "precision": "float32",
+        "test_evaluated": true,
+        "train_transform": "Resize(32), AutoAugment(CIFAR10 policy), ToTensor",
+        "validation_images_per_class": 50,
+        "validation_split_seed": 1729
+      },
+      "flops_breakdown": {
+        "conv2d": 46596096,
+        "cosine_classifier": 19200,
+        "linear": 603985920,
+        "multihead_attention": 1912602624,
+        "spectral_fft_estimate": 5228544
+      },
+      "flops_g_per_image": 2.568432384,
+      "flops_method": "Analytical estimate: Conv2d, Linear, multi-head/window-attention matrix operations, cosine-classifier matrix multiplication, and approximate 2D FFT work. Uses 2 FLOPs/MAC; excludes normalization, activation, softmax, pooling, and most elementwise operations.",
+      "flops_per_image": 2568432384,
+      "model": "nesy_cvt",
+      "model_config": {
+        "classifier_type": "cosine",
+        "concept_dim": 32,
+        "concept_loss_weight": 0.1,
+        "concept_schema": "latent",
+        "depths": [
+          2,
+          2
+        ],
+        "dropout": 0.0,
+        "embed_dim": 96,
+        "image_size": 32,
+        "in_channels": 3,
+        "layer_norm_eps": 1e-06,
+        "mlp_ratio": 4.0,
+        "model_size": "tiny",
+        "model_type": "nesy-cvt",
+        "num_classes": 100,
+        "num_heads": 4,
+        "prototype_loss_weight": 0.05,
+        "reasoning_mode": "learned_projection",
+        "rule_loss_weight": 0.05,
+        "spectral_loss_weight": 0.01,
+        "spectral_mixer_mode": "residual_identity",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "use_concept_auxiliary": true,
+        "use_spectral_mixer": true,
+        "use_transformer": true
+      },
+      "model_size_mb": 1.977597,
+      "num_parameters": 487457,
+      "run_dir": "runs\\cifar100-final-benchmark\\nesy_cvt\\seed-44",
+      "seed": 44,
+      "test": {
+        "auc_ovr_macro": 0.9804355454545454,
+        "batch_latency_mean_ms": 10.252876482531429,
+        "batch_latency_p50_ms": 10.261800023727119,
+        "batch_latency_p95_ms": 10.776599985547364,
+        "ece_15": 0.08352630012184382,
+        "evaluation_seconds": 6.98221119993832,
+        "images": 10000,
+        "images_per_second": 1432.2110451325705,
+        "inference_fps": 1568.9574615499414,
+        "inference_latency_ms_per_image_batch": 0.6373659098520875,
+        "inference_seconds_batch": 6.373659098520875,
+        "macro_f1": 0.5877095239647603,
+        "nll": 1.554707407951355,
+        "peak_gpu_memory_mb": 112.07373046875,
+        "pipeline_images_per_second": 1432.2110451325705,
+        "precision_macro": 0.5982536865588605,
+        "recall_macro": 0.5907,
+        "single_image_latency_mean_ms": 2.2062207925319672,
+        "single_image_latency_p50_ms": 2.065935969352722,
+        "single_image_latency_p95_ms": 2.7952640056610107,
+        "single_image_latency_repeats": 100,
+        "top1": 0.5907,
+        "top5": 0.8513
+      },
+      "trainable_parameters": 487457,
+      "training_seconds_including_validation": 6304.590163400004
+    },
+    {
+      "best_epoch_by_validation_top1": 50,
+      "best_validation_top1": 0.5866,
+      "checkpoint_bytes": 1968125,
+      "checkpoint_sha256": "b31659f9c6ec014560a571289731ade0013fab7c5b0ff33f1ad30fc56e78523d",
+      "config": {
+        "batch_size": 16,
+        "concept_supervision": "CIFAR-100 coarse labels (20 superclass concepts)",
+        "dataloader_workers": 0,
+        "dataset": "CIFAR-100 fine labels",
+        "epochs": 50,
+        "eval_transform": "Resize(32), ToTensor",
+        "input_size": 32,
+        "learning_rate": 0.0003,
+        "optimizer": "AdamW",
+        "precision": "float32",
+        "test_evaluated": true,
+        "train_transform": "Resize(32), AutoAugment(CIFAR10 policy), ToTensor",
+        "validation_images_per_class": 50,
+        "validation_split_seed": 1729
+      },
+      "flops_breakdown": {
+        "conv2d": 46596096,
+        "cosine_classifier": 19200,
+        "linear": 603983616,
+        "multihead_attention": 1912602624,
+        "spectral_fft_estimate": 5228544
+      },
+      "flops_g_per_image": 2.56843008,
+      "flops_method": "Analytical estimate: Conv2d, Linear, multi-head/window-attention matrix operations, cosine-classifier matrix multiplication, and approximate 2D FFT work. Uses 2 FLOPs/MAC; excludes normalization, activation, softmax, pooling, and most elementwise operations.",
+      "flops_per_image": 2568430080,
+      "model": "nesy_cvt_coarse_concepts",
+      "model_config": {
+        "classifier_type": "cosine",
+        "concept_dim": 20,
+        "concept_loss_weight": 0.1,
+        "concept_schema": "cifar100_coarse20",
+        "depths": [
+          2,
+          2
+        ],
+        "dropout": 0.0,
+        "embed_dim": 96,
+        "image_size": 32,
+        "in_channels": 3,
+        "layer_norm_eps": 1e-06,
+        "mlp_ratio": 4.0,
+        "model_size": "tiny",
+        "model_type": "nesy-cvt",
+        "num_classes": 100,
+        "num_heads": 4,
+        "prototype_loss_weight": 0.05,
+        "reasoning_mode": "learned_projection",
+        "rule_loss_weight": 0.05,
+        "spectral_loss_weight": 0.01,
+        "spectral_mixer_mode": "residual_identity",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "use_concept_auxiliary": true,
+        "use_spectral_mixer": true,
+        "use_transformer": true
+      },
+      "model_size_mb": 1.968125,
+      "num_parameters": 485093,
+      "run_dir": "runs\\cifar100-final-benchmark\\nesy_cvt_coarse_concepts\\seed-42",
+      "seed": 42,
+      "test": {
+        "auc_ovr_macro": 0.9801632171717172,
+        "batch_latency_mean_ms": 10.366754725575447,
+        "batch_latency_p50_ms": 10.361099964939058,
+        "batch_latency_p95_ms": 10.915399994701147,
+        "coarse_top1": 0.6753,
+        "ece_15": 0.090097758962214,
+        "evaluation_seconds": 7.048941900022328,
+        "images": 10000,
+        "images_per_second": 1418.652634939199,
+        "inference_fps": 1565.7925440973975,
+        "inference_latency_ms_per_image_batch": 0.6386542098247446,
+        "inference_seconds_batch": 6.386542098247446,
+        "macro_f1": 0.584512681048515,
+        "nll": 1.5655102729797363,
+        "peak_gpu_memory_mb": 112.064453125,
+        "pipeline_images_per_second": 1418.652634939199,
+        "precision_macro": 0.5931234849211062,
+        "recall_macro": 0.5882999999999999,
+        "single_image_latency_mean_ms": 2.2572787165641786,
+        "single_image_latency_p50_ms": 2.068463921546936,
+        "single_image_latency_p95_ms": 2.904576063156128,
+        "single_image_latency_repeats": 100,
+        "top1": 0.5883,
+        "top5": 0.8551
+      },
+      "trainable_parameters": 485093,
+      "training_seconds_including_validation": 6284.105069099998
+    },
+    {
+      "best_epoch_by_validation_top1": 48,
+      "best_validation_top1": 0.5856,
+      "checkpoint_bytes": 1968125,
+      "checkpoint_sha256": "c9f94d3a2c0efbf18d9eb80bec15cd5013b6b0116d49c48d85bff617cbb0e1ca",
+      "config": {
+        "batch_size": 16,
+        "concept_supervision": "CIFAR-100 coarse labels (20 superclass concepts)",
+        "dataloader_workers": 0,
+        "dataset": "CIFAR-100 fine labels",
+        "epochs": 50,
+        "eval_transform": "Resize(32), ToTensor",
+        "input_size": 32,
+        "learning_rate": 0.0003,
+        "optimizer": "AdamW",
+        "precision": "float32",
+        "test_evaluated": true,
+        "train_transform": "Resize(32), AutoAugment(CIFAR10 policy), ToTensor",
+        "validation_images_per_class": 50,
+        "validation_split_seed": 1729
+      },
+      "flops_breakdown": {
+        "conv2d": 46596096,
+        "cosine_classifier": 19200,
+        "linear": 603983616,
+        "multihead_attention": 1912602624,
+        "spectral_fft_estimate": 5228544
+      },
+      "flops_g_per_image": 2.56843008,
+      "flops_method": "Analytical estimate: Conv2d, Linear, multi-head/window-attention matrix operations, cosine-classifier matrix multiplication, and approximate 2D FFT work. Uses 2 FLOPs/MAC; excludes normalization, activation, softmax, pooling, and most elementwise operations.",
+      "flops_per_image": 2568430080,
+      "model": "nesy_cvt_coarse_concepts",
+      "model_config": {
+        "classifier_type": "cosine",
+        "concept_dim": 20,
+        "concept_loss_weight": 0.1,
+        "concept_schema": "cifar100_coarse20",
+        "depths": [
+          2,
+          2
+        ],
+        "dropout": 0.0,
+        "embed_dim": 96,
+        "image_size": 32,
+        "in_channels": 3,
+        "layer_norm_eps": 1e-06,
+        "mlp_ratio": 4.0,
+        "model_size": "tiny",
+        "model_type": "nesy-cvt",
+        "num_classes": 100,
+        "num_heads": 4,
+        "prototype_loss_weight": 0.05,
+        "reasoning_mode": "learned_projection",
+        "rule_loss_weight": 0.05,
+        "spectral_loss_weight": 0.01,
+        "spectral_mixer_mode": "residual_identity",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "use_concept_auxiliary": true,
+        "use_spectral_mixer": true,
+        "use_transformer": true
+      },
+      "model_size_mb": 1.968125,
+      "num_parameters": 485093,
+      "run_dir": "runs\\cifar100-final-benchmark\\nesy_cvt_coarse_concepts\\seed-43",
+      "seed": 43,
+      "test": {
+        "auc_ovr_macro": 0.9798706666666667,
+        "batch_latency_mean_ms": 10.361366400681437,
+        "batch_latency_p50_ms": 10.370700038038194,
+        "batch_latency_p95_ms": 10.908100055530667,
+        "coarse_top1": 0.6755,
+        "ece_15": 0.09290921289771796,
+        "evaluation_seconds": 7.043163399910554,
+        "images": 10000,
+        "images_per_second": 1419.816555743545,
+        "inference_fps": 1565.3157581498872,
+        "inference_latency_ms_per_image_batch": 0.6388487401301972,
+        "inference_seconds_batch": 6.388487401301973,
+        "macro_f1": 0.576863606690355,
+        "nll": 1.5889630317687988,
+        "peak_gpu_memory_mb": 112.064453125,
+        "pipeline_images_per_second": 1419.816555743545,
+        "precision_macro": 0.591502706056711,
+        "recall_macro": 0.58,
+        "single_image_latency_mean_ms": 2.1913481640815733,
+        "single_image_latency_p50_ms": 2.0920960903167725,
+        "single_image_latency_p95_ms": 2.512320041656494,
+        "single_image_latency_repeats": 100,
+        "top1": 0.58,
+        "top5": 0.8509
+      },
+      "trainable_parameters": 485093,
+      "training_seconds_including_validation": 6279.995399200008
+    },
+    {
+      "best_epoch_by_validation_top1": 46,
+      "best_validation_top1": 0.5992,
+      "checkpoint_bytes": 1968125,
+      "checkpoint_sha256": "4a752e27e80562bb0a75c3c95450ceff9d1d089dd62781ea8e825078c1f3accf",
+      "config": {
+        "batch_size": 16,
+        "concept_supervision": "CIFAR-100 coarse labels (20 superclass concepts)",
+        "dataloader_workers": 0,
+        "dataset": "CIFAR-100 fine labels",
+        "epochs": 50,
+        "eval_transform": "Resize(32), ToTensor",
+        "input_size": 32,
+        "learning_rate": 0.0003,
+        "optimizer": "AdamW",
+        "precision": "float32",
+        "test_evaluated": true,
+        "train_transform": "Resize(32), AutoAugment(CIFAR10 policy), ToTensor",
+        "validation_images_per_class": 50,
+        "validation_split_seed": 1729
+      },
+      "flops_breakdown": {
+        "conv2d": 46596096,
+        "cosine_classifier": 19200,
+        "linear": 603983616,
+        "multihead_attention": 1912602624,
+        "spectral_fft_estimate": 5228544
+      },
+      "flops_g_per_image": 2.56843008,
+      "flops_method": "Analytical estimate: Conv2d, Linear, multi-head/window-attention matrix operations, cosine-classifier matrix multiplication, and approximate 2D FFT work. Uses 2 FLOPs/MAC; excludes normalization, activation, softmax, pooling, and most elementwise operations.",
+      "flops_per_image": 2568430080,
+      "model": "nesy_cvt_coarse_concepts",
+      "model_config": {
+        "classifier_type": "cosine",
+        "concept_dim": 20,
+        "concept_loss_weight": 0.1,
+        "concept_schema": "cifar100_coarse20",
+        "depths": [
+          2,
+          2
+        ],
+        "dropout": 0.0,
+        "embed_dim": 96,
+        "image_size": 32,
+        "in_channels": 3,
+        "layer_norm_eps": 1e-06,
+        "mlp_ratio": 4.0,
+        "model_size": "tiny",
+        "model_type": "nesy-cvt",
+        "num_classes": 100,
+        "num_heads": 4,
+        "prototype_loss_weight": 0.05,
+        "reasoning_mode": "learned_projection",
+        "rule_loss_weight": 0.05,
+        "spectral_loss_weight": 0.01,
+        "spectral_mixer_mode": "residual_identity",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "use_concept_auxiliary": true,
+        "use_spectral_mixer": true,
+        "use_transformer": true
+      },
+      "model_size_mb": 1.968125,
+      "num_parameters": 485093,
+      "run_dir": "runs\\cifar100-final-benchmark\\nesy_cvt_coarse_concepts\\seed-44",
+      "seed": 44,
+      "test": {
+        "auc_ovr_macro": 0.9814628434343434,
+        "batch_latency_mean_ms": 10.360529438778759,
+        "batch_latency_p50_ms": 10.370899923145771,
+        "batch_latency_p95_ms": 10.897799977101386,
+        "coarse_top1": 0.683,
+        "ece_15": 0.08378522614166137,
+        "evaluation_seconds": 7.038956600008532,
+        "images": 10000,
+        "images_per_second": 1420.6651025505512,
+        "inference_fps": 1565.5467002345063,
+        "inference_latency_ms_per_image_batch": 0.638754500169307,
+        "inference_seconds_batch": 6.38754500169307,
+        "macro_f1": 0.5869151531860295,
+        "nll": 1.5238280296325684,
+        "peak_gpu_memory_mb": 112.064453125,
+        "pipeline_images_per_second": 1420.6651025505512,
+        "precision_macro": 0.5981782700186237,
+        "recall_macro": 0.5895,
+        "single_image_latency_mean_ms": 2.2086214327812197,
+        "single_image_latency_p50_ms": 2.0685280561447144,
+        "single_image_latency_p95_ms": 2.826240062713623,
+        "single_image_latency_repeats": 100,
+        "top1": 0.5895,
+        "top5": 0.8587
+      },
+      "trainable_parameters": 485093,
+      "training_seconds_including_validation": 6276.784591399992
+    },
+    {
+      "best_epoch_by_validation_top1": 44,
+      "best_validation_top1": 0.6118,
+      "checkpoint_bytes": 44956299,
+      "checkpoint_sha256": "c2db2b619ab1b006db79e6bccafd216d79dd77c628aa0717aa664ccd1fc5d3c2",
+      "config": {
+        "batch_size": 16,
+        "concept_supervision": "none; latent auxiliary class head",
+        "dataloader_workers": 0,
+        "dataset": "CIFAR-100 fine labels",
+        "epochs": 50,
+        "eval_transform": "Resize(32), ToTensor",
+        "input_size": 32,
+        "learning_rate": 0.0003,
+        "optimizer": "AdamW",
+        "precision": "float32",
+        "test_evaluated": true,
+        "train_transform": "Resize(32), AutoAugment(CIFAR10 policy), ToTensor",
+        "validation_images_per_class": 50,
+        "validation_split_seed": 1729
+      },
+      "flops_breakdown": {
+        "conv2d": 1110835200,
+        "linear": 102400
+      },
+      "flops_g_per_image": 1.1109376,
+      "flops_method": "Analytical estimate: Conv2d, Linear, multi-head/window-attention matrix operations, cosine-classifier matrix multiplication, and approximate 2D FFT work. Uses 2 FLOPs/MAC; excludes normalization, activation, softmax, pooling, and most elementwise operations.",
+      "flops_per_image": 1110937600,
+      "model": "resnet18_cifar",
+      "model_config": {
+        "classifier_type": "cosine",
+        "concept_dim": 32,
+        "concept_loss_weight": 0.1,
+        "concept_schema": "latent",
+        "depths": [
+          2,
+          2
+        ],
+        "dropout": 0.0,
+        "embed_dim": 96,
+        "image_size": 32,
+        "in_channels": 3,
+        "layer_norm_eps": 1e-06,
+        "mlp_ratio": 4.0,
+        "model_size": "tiny",
+        "model_type": "nesy-cvt",
+        "num_classes": 100,
+        "num_heads": 4,
+        "prototype_loss_weight": 0.05,
+        "reasoning_mode": "learned_projection",
+        "rule_loss_weight": 0.05,
+        "spectral_loss_weight": 0.01,
+        "spectral_mixer_mode": "residual_identity",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "use_concept_auxiliary": true,
+        "use_spectral_mixer": true,
+        "use_transformer": true
+      },
+      "model_size_mb": 44.956299,
+      "num_parameters": 11220132,
+      "run_dir": "runs\\cifar100-final-benchmark\\resnet18_cifar\\seed-42",
+      "seed": 42,
+      "test": {
+        "auc_ovr_macro": 0.9797512121212121,
+        "batch_latency_mean_ms": 1.8479551969096064,
+        "batch_latency_p50_ms": 1.7750000115484,
+        "batch_latency_p95_ms": 2.1863000001758337,
+        "ece_15": 0.21885010292530058,
+        "evaluation_seconds": 1.7046810000902042,
+        "images": 10000,
+        "images_per_second": 5866.2001861174285,
+        "inference_fps": 8913.096845953023,
+        "inference_latency_ms_per_image_batch": 0.11219445017632097,
+        "inference_seconds_batch": 1.1219445017632097,
+        "macro_f1": 0.6054850258813129,
+        "nll": 2.0290439128875732,
+        "peak_gpu_memory_mb": 99.18798828125,
+        "pipeline_images_per_second": 5866.2001861174285,
+        "precision_macro": 0.6193755851066656,
+        "recall_macro": 0.6072,
+        "single_image_latency_mean_ms": 1.7327411186695099,
+        "single_image_latency_p50_ms": 1.6833919882774353,
+        "single_image_latency_p95_ms": 1.9678399562835693,
+        "single_image_latency_repeats": 100,
+        "top1": 0.6072,
+        "top5": 0.8592
+      },
+      "trainable_parameters": 11220132,
+      "training_seconds_including_validation": 1664.4599201999954
+    },
+    {
+      "best_epoch_by_validation_top1": 47,
+      "best_validation_top1": 0.618,
+      "checkpoint_bytes": 44956299,
+      "checkpoint_sha256": "641bb71eadb9831400bb0a58c8481538884eea060c02d4cafcb8d0a0674e9bdb",
+      "config": {
+        "batch_size": 16,
+        "concept_supervision": "none; latent auxiliary class head",
+        "dataloader_workers": 0,
+        "dataset": "CIFAR-100 fine labels",
+        "epochs": 50,
+        "eval_transform": "Resize(32), ToTensor",
+        "input_size": 32,
+        "learning_rate": 0.0003,
+        "optimizer": "AdamW",
+        "precision": "float32",
+        "test_evaluated": true,
+        "train_transform": "Resize(32), AutoAugment(CIFAR10 policy), ToTensor",
+        "validation_images_per_class": 50,
+        "validation_split_seed": 1729
+      },
+      "flops_breakdown": {
+        "conv2d": 1110835200,
+        "linear": 102400
+      },
+      "flops_g_per_image": 1.1109376,
+      "flops_method": "Analytical estimate: Conv2d, Linear, multi-head/window-attention matrix operations, cosine-classifier matrix multiplication, and approximate 2D FFT work. Uses 2 FLOPs/MAC; excludes normalization, activation, softmax, pooling, and most elementwise operations.",
+      "flops_per_image": 1110937600,
+      "model": "resnet18_cifar",
+      "model_config": {
+        "classifier_type": "cosine",
+        "concept_dim": 32,
+        "concept_loss_weight": 0.1,
+        "concept_schema": "latent",
+        "depths": [
+          2,
+          2
+        ],
+        "dropout": 0.0,
+        "embed_dim": 96,
+        "image_size": 32,
+        "in_channels": 3,
+        "layer_norm_eps": 1e-06,
+        "mlp_ratio": 4.0,
+        "model_size": "tiny",
+        "model_type": "nesy-cvt",
+        "num_classes": 100,
+        "num_heads": 4,
+        "prototype_loss_weight": 0.05,
+        "reasoning_mode": "learned_projection",
+        "rule_loss_weight": 0.05,
+        "spectral_loss_weight": 0.01,
+        "spectral_mixer_mode": "residual_identity",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "use_concept_auxiliary": true,
+        "use_spectral_mixer": true,
+        "use_transformer": true
+      },
+      "model_size_mb": 44.956299,
+      "num_parameters": 11220132,
+      "run_dir": "runs\\cifar100-final-benchmark\\resnet18_cifar\\seed-43",
+      "seed": 43,
+      "test": {
+        "auc_ovr_macro": 0.9789254242424242,
+        "batch_latency_mean_ms": 1.8202654387801886,
+        "batch_latency_p50_ms": 1.7711999826133251,
+        "batch_latency_p95_ms": 2.1253000013530254,
+        "ece_15": 0.22053156671524046,
+        "evaluation_seconds": 1.6944569000042975,
+        "images": 10000,
+        "images_per_second": 5901.5959626796275,
+        "inference_fps": 9049.167754066855,
+        "inference_latency_ms_per_image_batch": 0.11050739992642775,
+        "inference_seconds_batch": 1.1050739992642775,
+        "macro_f1": 0.6140590475975146,
+        "nll": 2.1004714965820312,
+        "peak_gpu_memory_mb": 99.18798828125,
+        "pipeline_images_per_second": 5901.5959626796275,
+        "precision_macro": 0.6255185166496107,
+        "recall_macro": 0.6154999999999999,
+        "single_image_latency_mean_ms": 1.7414995193481446,
+        "single_image_latency_p50_ms": 1.6502079963684082,
+        "single_image_latency_p95_ms": 2.1834559440612793,
+        "single_image_latency_repeats": 100,
+        "top1": 0.6155,
+        "top5": 0.8495
+      },
+      "trainable_parameters": 11220132,
+      "training_seconds_including_validation": 1666.5783242999896
+    },
+    {
+      "best_epoch_by_validation_top1": 50,
+      "best_validation_top1": 0.6166,
+      "checkpoint_bytes": 44956299,
+      "checkpoint_sha256": "306c43cadb915d4e40b8142de9e5663af15e17f27b2fbed7001f26789e77d9c5",
+      "config": {
+        "batch_size": 16,
+        "concept_supervision": "none; latent auxiliary class head",
+        "dataloader_workers": 0,
+        "dataset": "CIFAR-100 fine labels",
+        "epochs": 50,
+        "eval_transform": "Resize(32), ToTensor",
+        "input_size": 32,
+        "learning_rate": 0.0003,
+        "optimizer": "AdamW",
+        "precision": "float32",
+        "test_evaluated": true,
+        "train_transform": "Resize(32), AutoAugment(CIFAR10 policy), ToTensor",
+        "validation_images_per_class": 50,
+        "validation_split_seed": 1729
+      },
+      "flops_breakdown": {
+        "conv2d": 1110835200,
+        "linear": 102400
+      },
+      "flops_g_per_image": 1.1109376,
+      "flops_method": "Analytical estimate: Conv2d, Linear, multi-head/window-attention matrix operations, cosine-classifier matrix multiplication, and approximate 2D FFT work. Uses 2 FLOPs/MAC; excludes normalization, activation, softmax, pooling, and most elementwise operations.",
+      "flops_per_image": 1110937600,
+      "model": "resnet18_cifar",
+      "model_config": {
+        "classifier_type": "cosine",
+        "concept_dim": 32,
+        "concept_loss_weight": 0.1,
+        "concept_schema": "latent",
+        "depths": [
+          2,
+          2
+        ],
+        "dropout": 0.0,
+        "embed_dim": 96,
+        "image_size": 32,
+        "in_channels": 3,
+        "layer_norm_eps": 1e-06,
+        "mlp_ratio": 4.0,
+        "model_size": "tiny",
+        "model_type": "nesy-cvt",
+        "num_classes": 100,
+        "num_heads": 4,
+        "prototype_loss_weight": 0.05,
+        "reasoning_mode": "learned_projection",
+        "rule_loss_weight": 0.05,
+        "spectral_loss_weight": 0.01,
+        "spectral_mixer_mode": "residual_identity",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "use_concept_auxiliary": true,
+        "use_spectral_mixer": true,
+        "use_transformer": true
+      },
+      "model_size_mb": 44.956299,
+      "num_parameters": 11220132,
+      "run_dir": "runs\\cifar100-final-benchmark\\resnet18_cifar\\seed-44",
+      "seed": 44,
+      "test": {
+        "auc_ovr_macro": 0.9791780454545455,
+        "batch_latency_mean_ms": 1.8213958397507668,
+        "batch_latency_p50_ms": 1.769399968907237,
+        "batch_latency_p95_ms": 2.148800063878298,
+        "ece_15": 0.21924548825323578,
+        "evaluation_seconds": 1.697255800012499,
+        "images": 10000,
+        "images_per_second": 5891.863795620176,
+        "inference_fps": 9045.040049542633,
+        "inference_latency_ms_per_image_batch": 0.11055782998446376,
+        "inference_seconds_batch": 1.1055782998446375,
+        "macro_f1": 0.6121448142393942,
+        "nll": 2.071493148803711,
+        "peak_gpu_memory_mb": 99.18798828125,
+        "pipeline_images_per_second": 5891.863795620176,
+        "precision_macro": 0.6274948528546436,
+        "recall_macro": 0.6148,
+        "single_image_latency_mean_ms": 1.7324508810043335,
+        "single_image_latency_p50_ms": 1.6527840495109558,
+        "single_image_latency_p95_ms": 2.06713604927063,
+        "single_image_latency_repeats": 100,
+        "top1": 0.6148,
+        "top5": 0.855
+      },
+      "trainable_parameters": 11220132,
+      "training_seconds_including_validation": 1690.8828228000057
+    },
+    {
+      "best_epoch_by_validation_top1": 42,
+      "best_validation_top1": 0.3834,
+      "checkpoint_bytes": 4106935,
+      "checkpoint_sha256": "1e93b02d8c5ffea0b3c5e6b3dde5d320acd086dcb8649c1e6604ee57e90c21e6",
+      "config": {
+        "batch_size": 16,
+        "concept_supervision": "none; latent auxiliary class head",
+        "dataloader_workers": 0,
+        "dataset": "CIFAR-100 fine labels",
+        "epochs": 50,
+        "eval_transform": "Resize(32), ToTensor",
+        "input_size": 32,
+        "learning_rate": 0.0003,
+        "optimizer": "AdamW",
+        "precision": "float32",
+        "test_evaluated": true,
+        "train_transform": "Resize(32), AutoAugment(CIFAR10 policy), ToTensor",
+        "validation_images_per_class": 50,
+        "validation_split_seed": 1729
+      },
+      "flops_breakdown": {
+        "conv2d": 786432,
+        "linear": 76702720,
+        "multihead_attention": 64097280
+      },
+      "flops_g_per_image": 0.141586432,
+      "flops_method": "Analytical estimate: Conv2d, Linear, multi-head/window-attention matrix operations, cosine-classifier matrix multiplication, and approximate 2D FFT work. Uses 2 FLOPs/MAC; excludes normalization, activation, softmax, pooling, and most elementwise operations.",
+      "flops_per_image": 141586432,
+      "model": "vit_tiny_patch4",
+      "model_config": {
+        "classifier_type": "cosine",
+        "concept_dim": 32,
+        "concept_loss_weight": 0.1,
+        "concept_schema": "latent",
+        "depths": [
+          2,
+          2
+        ],
+        "dropout": 0.0,
+        "embed_dim": 96,
+        "image_size": 32,
+        "in_channels": 3,
+        "layer_norm_eps": 1e-06,
+        "mlp_ratio": 4.0,
+        "model_size": "tiny",
+        "model_type": "nesy-cvt",
+        "num_classes": 100,
+        "num_heads": 4,
+        "prototype_loss_weight": 0.05,
+        "reasoning_mode": "learned_projection",
+        "rule_loss_weight": 0.05,
+        "spectral_loss_weight": 0.01,
+        "spectral_mixer_mode": "residual_identity",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "use_concept_auxiliary": true,
+        "use_spectral_mixer": true,
+        "use_transformer": true
+      },
+      "model_size_mb": 4.106935,
+      "num_parameters": 1020132,
+      "run_dir": "runs\\cifar100-final-benchmark\\vit_tiny_patch4\\seed-42",
+      "seed": 42,
+      "test": {
+        "auc_ovr_macro": 0.9396018181818182,
+        "batch_latency_mean_ms": 1.8575059209018945,
+        "batch_latency_p50_ms": 1.7983999568969011,
+        "batch_latency_p95_ms": 2.172500011511147,
+        "ece_15": 0.16075645791441204,
+        "evaluation_seconds": 1.7273745000129566,
+        "images": 10000,
+        "images_per_second": 5789.132582381523,
+        "inference_fps": 8866.027159524316,
+        "inference_latency_ms_per_image_batch": 0.11279008985729888,
+        "inference_seconds_batch": 1.1279008985729888,
+        "macro_f1": 0.37429948183629363,
+        "nll": 2.6284639835357666,
+        "peak_gpu_memory_mb": 41.67138671875,
+        "pipeline_images_per_second": 5789.132582381523,
+        "precision_macro": 0.3829158116497191,
+        "recall_macro": 0.3775,
+        "single_image_latency_mean_ms": 1.6980198311805725,
+        "single_image_latency_p50_ms": 1.606335997581482,
+        "single_image_latency_p95_ms": 2.2827839851379395,
+        "single_image_latency_repeats": 100,
+        "top1": 0.3775,
+        "top5": 0.6798
+      },
+      "trainable_parameters": 1020132,
+      "training_seconds_including_validation": 1829.8762247999985
+    },
+    {
+      "best_epoch_by_validation_top1": 47,
+      "best_validation_top1": 0.424,
+      "checkpoint_bytes": 4106935,
+      "checkpoint_sha256": "598636ea4fd83a029b6d4d0bd2ddc4a213497b091a2008472b1352efbe2b19e9",
+      "config": {
+        "batch_size": 16,
+        "concept_supervision": "none; latent auxiliary class head",
+        "dataloader_workers": 0,
+        "dataset": "CIFAR-100 fine labels",
+        "epochs": 50,
+        "eval_transform": "Resize(32), ToTensor",
+        "input_size": 32,
+        "learning_rate": 0.0003,
+        "optimizer": "AdamW",
+        "precision": "float32",
+        "test_evaluated": true,
+        "train_transform": "Resize(32), AutoAugment(CIFAR10 policy), ToTensor",
+        "validation_images_per_class": 50,
+        "validation_split_seed": 1729
+      },
+      "flops_breakdown": {
+        "conv2d": 786432,
+        "linear": 76702720,
+        "multihead_attention": 64097280
+      },
+      "flops_g_per_image": 0.141586432,
+      "flops_method": "Analytical estimate: Conv2d, Linear, multi-head/window-attention matrix operations, cosine-classifier matrix multiplication, and approximate 2D FFT work. Uses 2 FLOPs/MAC; excludes normalization, activation, softmax, pooling, and most elementwise operations.",
+      "flops_per_image": 141586432,
+      "model": "vit_tiny_patch4",
+      "model_config": {
+        "classifier_type": "cosine",
+        "concept_dim": 32,
+        "concept_loss_weight": 0.1,
+        "concept_schema": "latent",
+        "depths": [
+          2,
+          2
+        ],
+        "dropout": 0.0,
+        "embed_dim": 96,
+        "image_size": 32,
+        "in_channels": 3,
+        "layer_norm_eps": 1e-06,
+        "mlp_ratio": 4.0,
+        "model_size": "tiny",
+        "model_type": "nesy-cvt",
+        "num_classes": 100,
+        "num_heads": 4,
+        "prototype_loss_weight": 0.05,
+        "reasoning_mode": "learned_projection",
+        "rule_loss_weight": 0.05,
+        "spectral_loss_weight": 0.01,
+        "spectral_mixer_mode": "residual_identity",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "use_concept_auxiliary": true,
+        "use_spectral_mixer": true,
+        "use_transformer": true
+      },
+      "model_size_mb": 4.106935,
+      "num_parameters": 1020132,
+      "run_dir": "runs\\cifar100-final-benchmark\\vit_tiny_patch4\\seed-43",
+      "seed": 43,
+      "test": {
+        "auc_ovr_macro": 0.9479716161616162,
+        "batch_latency_mean_ms": 1.8484396805986762,
+        "batch_latency_p50_ms": 1.784500083886087,
+        "batch_latency_p95_ms": 2.23129999358207,
+        "ece_15": 0.16873981581255795,
+        "evaluation_seconds": 1.71047280007042,
+        "images": 10000,
+        "images_per_second": 5846.336755304324,
+        "inference_fps": 8908.982788743138,
+        "inference_latency_ms_per_image_batch": 0.11224626017501578,
+        "inference_seconds_batch": 1.1224626017501578,
+        "macro_f1": 0.41511066967925636,
+        "nll": 2.502330780029297,
+        "peak_gpu_memory_mb": 41.67138671875,
+        "pipeline_images_per_second": 5846.336755304324,
+        "precision_macro": 0.42792058187044646,
+        "recall_macro": 0.4165,
+        "single_image_latency_mean_ms": 1.7057440042495728,
+        "single_image_latency_p50_ms": 1.676256000995636,
+        "single_image_latency_p95_ms": 1.8907519578933716,
+        "single_image_latency_repeats": 100,
+        "top1": 0.4165,
+        "top5": 0.7161
+      },
+      "trainable_parameters": 1020132,
+      "training_seconds_including_validation": 1837.9273672999989
+    },
+    {
+      "best_epoch_by_validation_top1": 47,
+      "best_validation_top1": 0.414,
+      "checkpoint_bytes": 4106935,
+      "checkpoint_sha256": "904af40a9f44b514120938b901005cbbc2c9f22657576fcbe34455f484b6f324",
+      "config": {
+        "batch_size": 16,
+        "concept_supervision": "none; latent auxiliary class head",
+        "dataloader_workers": 0,
+        "dataset": "CIFAR-100 fine labels",
+        "epochs": 50,
+        "eval_transform": "Resize(32), ToTensor",
+        "input_size": 32,
+        "learning_rate": 0.0003,
+        "optimizer": "AdamW",
+        "precision": "float32",
+        "test_evaluated": true,
+        "train_transform": "Resize(32), AutoAugment(CIFAR10 policy), ToTensor",
+        "validation_images_per_class": 50,
+        "validation_split_seed": 1729
+      },
+      "flops_breakdown": {
+        "conv2d": 786432,
+        "linear": 76702720,
+        "multihead_attention": 64097280
+      },
+      "flops_g_per_image": 0.141586432,
+      "flops_method": "Analytical estimate: Conv2d, Linear, multi-head/window-attention matrix operations, cosine-classifier matrix multiplication, and approximate 2D FFT work. Uses 2 FLOPs/MAC; excludes normalization, activation, softmax, pooling, and most elementwise operations.",
+      "flops_per_image": 141586432,
+      "model": "vit_tiny_patch4",
+      "model_config": {
+        "classifier_type": "cosine",
+        "concept_dim": 32,
+        "concept_loss_weight": 0.1,
+        "concept_schema": "latent",
+        "depths": [
+          2,
+          2
+        ],
+        "dropout": 0.0,
+        "embed_dim": 96,
+        "image_size": 32,
+        "in_channels": 3,
+        "layer_norm_eps": 1e-06,
+        "mlp_ratio": 4.0,
+        "model_size": "tiny",
+        "model_type": "nesy-cvt",
+        "num_classes": 100,
+        "num_heads": 4,
+        "prototype_loss_weight": 0.05,
+        "reasoning_mode": "learned_projection",
+        "rule_loss_weight": 0.05,
+        "spectral_loss_weight": 0.01,
+        "spectral_mixer_mode": "residual_identity",
+        "taxonomy_consistency_weight": 0.1,
+        "taxonomy_rule_weight": 0.5,
+        "use_concept_auxiliary": true,
+        "use_spectral_mixer": true,
+        "use_transformer": true
+      },
+      "model_size_mb": 4.106935,
+      "num_parameters": 1020132,
+      "run_dir": "runs\\cifar100-final-benchmark\\vit_tiny_patch4\\seed-44",
+      "seed": 44,
+      "test": {
+        "auc_ovr_macro": 0.9467486313131314,
+        "batch_latency_mean_ms": 1.8148713620379566,
+        "batch_latency_p50_ms": 1.7731999978423119,
+        "batch_latency_p95_ms": 2.0842000376433134,
+        "ece_15": 0.15681161046102643,
+        "evaluation_seconds": 1.6924533999990672,
+        "images": 10000,
+        "images_per_second": 5908.582180168453,
+        "inference_fps": 9078.607569686466,
+        "inference_latency_ms_per_image_batch": 0.11014905009651557,
+        "inference_seconds_batch": 1.1014905009651557,
+        "macro_f1": 0.4113526506872589,
+        "nll": 2.4824466705322266,
+        "peak_gpu_memory_mb": 41.67138671875,
+        "pipeline_images_per_second": 5908.582180168453,
+        "precision_macro": 0.41912894857260397,
+        "recall_macro": 0.4152,
+        "single_image_latency_mean_ms": 1.7288806462287902,
+        "single_image_latency_p50_ms": 1.6406240463256836,
+        "single_image_latency_p95_ms": 2.0113279819488525,
+        "single_image_latency_repeats": 100,
+        "top1": 0.4152,
+        "top5": 0.7137
+      },
+      "trainable_parameters": 1020132,
+      "training_seconds_including_validation": 1828.905022299994
+    }
+  ]
+}

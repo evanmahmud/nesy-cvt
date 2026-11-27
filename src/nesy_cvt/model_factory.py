@@ -30,13 +30,27 @@ MODEL_NAMES = (
     "nesy_cvt_no_transformer",
     "nesy_cvt_no_concept_auxiliary",
     "nesy_cvt_linear_classifier",
+    "nesy_cvt_no_rule_fusion",
+    "nesy_cvt_no_hierarchy_consistency",
+    "nesy_cvt_no_coarse_supervision",
     "resnet18_cifar",
     "mobilenet_v3_small",
     "densenet121_cifar",
     "convnext_tiny_cifar",
     "swin_t_cifar",
     "vit_tiny_patch4",
+    "wide_resnet28x10_cifar",
 )
+
+TAXONOMY_ABLATIONS = {
+    "nesy_cvt_no_fft",
+    "nesy_cvt_no_transformer",
+    "nesy_cvt_no_concept_auxiliary",
+    "nesy_cvt_linear_classifier",
+    "nesy_cvt_no_rule_fusion",
+    "nesy_cvt_no_hierarchy_consistency",
+    "nesy_cvt_no_coarse_supervision",
+}
 
 
 def config_for_model(model_name: str, config: NesyCVTConfig) -> NesyCVTConfig:
@@ -50,6 +64,25 @@ def config_for_model(model_name: str, config: NesyCVTConfig) -> NesyCVTConfig:
             concept_schema="cifar100_coarse20",
             reasoning_mode="cifar100_taxonomy",
             **MODEL_SIZE_PRESETS[size],
+        )
+    if model_name in TAXONOMY_ABLATIONS:
+        if model_name == "nesy_cvt_no_concept_auxiliary":
+            return replace(
+                config,
+                model_size="tiny",
+                concept_dim=32,
+                concept_schema="latent",
+                reasoning_mode="learned_projection",
+                use_concept_auxiliary=False,
+                **MODEL_SIZE_PRESETS["tiny"],
+            )
+        return replace(
+            config,
+            model_size="tiny",
+            concept_dim=20,
+            concept_schema="cifar100_coarse20",
+            reasoning_mode="cifar100_taxonomy",
+            **MODEL_SIZE_PRESETS["tiny"],
         )
     if model_name == "nesy_cvt_coarse_concepts":
         return replace(config, concept_dim=20, concept_schema="cifar100_coarse20")
@@ -149,7 +182,6 @@ def build_classifier(model_name: str, config: NesyCVTConfig):
         ablations = {
             "nesy_cvt_no_fft": {"use_spectral_mixer": False},
             "nesy_cvt_no_transformer": {"use_transformer": False},
-            "nesy_cvt_no_concept_auxiliary": {"use_concept_auxiliary": False},
             "nesy_cvt_linear_classifier": {"classifier_type": "linear"},
         }
         if model_name in ablations:
@@ -213,5 +245,10 @@ def build_classifier(model_name: str, config: NesyCVTConfig):
             attention_dropout=0.0,
             num_classes=config.num_classes,
         )
+
+    if model_name == "wide_resnet28x10_cifar":
+        from .cifar_models import wide_resnet28x10_cifar
+
+        return wide_resnet28x10_cifar(num_classes=config.num_classes)
 
     raise ValueError(f"Unknown model {model_name!r}; choose from {', '.join(MODEL_NAMES)}")

@@ -42,6 +42,37 @@ For a compact main paper, use one designated NeSy-CVT size as the primary model 
 - ConvNeXt-Tiny and Swin-T only after their CIFAR-100 adaptation and training runs pass baseline sanity checks.
 - Add a CIFAR-oriented high-performing CNN reference such as Wide-ResNet-28-10 or PreAct-ResNet, with an established CIFAR implementation and documented settings.
 
+The repository now includes a scratch-trained Wide-ResNet-28-10 reference (four blocks in each of three stages, widths 160/320/640, dropout 0.3). Its implementation is available but has not yet completed a multi-seed run. Wide residual networks are an established CIFAR comparison family (Zagoruyko and Komodakis, 2016).
+
+### Exact v2 roster and architecture role
+
+Every v2 model starts from random initialization. The torchvision baselines use no pretrained weights. The six size presets share the NeSy-CVT structure; the table distinguishes model scaling from component ablations and external reference families.
+
+| Configuration | Architecture or controlled change | Role |
+|---|---|---|
+| `nesy_cvt_nano` | NeSy-CVT; width 64, 2 Transformer blocks, 4 heads | Smallest taxonomy variant |
+| `nesy_cvt_tiny` | NeSy-CVT; width 96, 4 blocks, 4 heads | Primary candidate and ablation reference |
+| `nesy_cvt_small` | NeSy-CVT; width 128, 6 blocks, 4 heads | Size scaling |
+| `nesy_cvt_base` | NeSy-CVT; width 192, 8 blocks, 6 heads | Size scaling |
+| `nesy_cvt_large` | NeSy-CVT; width 256, 12 blocks, 8 heads | Size scaling |
+| `nesy_cvt_huge` | NeSy-CVT; width 320, 16 blocks, 10 heads | Largest size and resource point |
+| `nesy_cvt` | Legacy latent concepts with a learned class projection | Historical architecture revision |
+| `nesy_cvt_coarse_concepts` | 20 supervised CIFAR-100 concepts with a learned projection | Historical concept-head baseline |
+| `nesy_cvt_no_fft` | Tiny taxonomy variant without the complex spectral gate | Spectral component ablation |
+| `nesy_cvt_no_transformer` | Tiny taxonomy variant without Transformer blocks | Global-attention ablation |
+| `nesy_cvt_no_concept_auxiliary` | Tiny-width branch variant without the concept head and its rule path | Coupled semantic-branch ablation |
+| `nesy_cvt_linear_classifier` | Tiny taxonomy encoder with a linear class head | Cosine-prototype ablation |
+| `nesy_cvt_no_rule_fusion` | Tiny taxonomy variant with rule-fusion weight set to zero | Symbolic score-fusion ablation |
+| `nesy_cvt_no_hierarchy_consistency` | Tiny taxonomy variant with hierarchy-consistency weight set to zero | Consistency-objective ablation |
+| `nesy_cvt_no_coarse_supervision` | Tiny taxonomy variant with coarse-concept CE weight set to zero | Ground-truth concept-supervision ablation |
+| `resnet18_cifar` | ResNet-18 with a 3×3 CIFAR stem and no initial max-pool | CNN reference |
+| `mobilenet_v3_small` | MobileNetV3-Small with CIFAR-resolution first-stage stride | Efficient CNN reference |
+| `densenet121_cifar` | DenseNet-121 with a 3×3 CIFAR stem and no initial max-pool | Dense CNN reference |
+| `convnext_tiny_cifar` | ConvNeXt-Tiny at 32×32 CIFAR input size | Modern CNN reference |
+| `swin_t_cifar` | Swin-Tiny at 32×32 CIFAR input size | Window-attention reference |
+| `vit_tiny_patch4` | ViT-Tiny with 4×4 input patches | Global-transformer reference |
+| `wide_resnet28x10_cifar` | Scratch Wide-ResNet-28-10; four blocks/stage, widths 160/320/640, dropout 0.3 | CIFAR-oriented high-capacity CNN reference |
+
 All scratch-trained runs should share exactly defined train/validation indices and evaluation images. Report two tracks if resources permit:
 
 1. **Fixed-recipe track:** one shared schedule and optimizer, which answers how models behave under that recipe.
@@ -51,7 +82,7 @@ Do not use imported literature numbers as if they were reruns. Put them in a sep
 
 ### 3.3 Component ablations
 
-Run these with the primary NeSy-CVT size, same data split, seeds, and training budget. Freeze all other settings. The current runner supports the FFT-off, Transformer-off, linear-classifier, rule-fusion-weight-zero, and hierarchy-consistency-weight-zero comparisons. Check the no-concept-head path before using it: taxonomy mode currently requires a concept head, so the existing `nesy_cvt_no_concept_auxiliary` name may not represent a valid isolated ablation without an implementation/configuration change.
+Run these with the primary NeSy-CVT size, same data split, seeds, and training budget. Freeze all other settings. The runner constructs FFT-off, Transformer-off, linear-classifier, and no-concept-branch variants from the Tiny taxonomy configuration. The no-concept variant removes both the semantic head and its dependent rule path; call it a branch ablation, not an isolated head ablation. Three additional named variants independently set rule-fusion, hierarchy-consistency, or coarse-concept supervision weight to zero. The effective weights are stored per run, and saved-checkpoint evaluation allows these documented per-model ablation differences while checking all shared data and training settings.
 
 | Ablation | Question answered | Interpretation limit |
 |---|---|---|
@@ -76,6 +107,74 @@ An ablation that changes several components at once should be labeled as a branc
 7. **Keep comparisons comparable.** Use the same test examples and label mapping. State scratch/pretrained status, extra training data, resolution, augmentations, number of epochs, checkpoint selection, test-time augmentation, batch size, and precision. Do not mix timing from unlike hardware.
 8. **Archive the experiment.** Record the Git commit, Python/PyTorch/CUDA/driver versions, GPU and CPU, random seeds, split indices or their hash, dataset file hash, full configuration, per-epoch logs, checkpoints or hashes, and evaluation JSON/CSV.
 
+### New runner support and preflight
+
+The historical `legacy_v1` preprocessing remains available unchanged. The separate `cifar100_standard_v2` recipe uses random crop with 4-pixel padding, horizontal flip, the CIFAR-10 AutoAugment policy, and CIFAR-100 mean/std normalization. The runner also supports AdamW or SGD, cosine decay, explicit weight decay, and optional gradient clipping. A one-epoch, one-seed validation-only v2 preflight completed for Tiny, the no-concept branch, Wide-ResNet-28-10, ConvNeXt-Tiny, and Swin-T. It is a pipeline check, not a performance result; the separate report explicitly says there is no seed-variation estimate. Existing reports and plots were not overwritten.
+
+### Runtime estimate
+
+The earlier 13-model comparison recorded 142.3 GPU-hours for 13 models × 3 seeds × 50 epochs on the RTX 5070. The planned 22-model × 3-seed × 100-epoch roster scales to about 482 GPU-hours if every model-epoch took the old roster's average time. The new ablations are smaller than the older Large/Huge variants, so use **roughly 380–500 GPU-hours** for planning (about **16–21 days running continuously**, or 48–63 days at 8 hours/day). This is an estimate: the recipe changes and the large variants have uneven epoch times. It excludes per-model hyperparameter search, confirmatory experiments on a new dataset, and interruptions. The one-epoch preflight accumulated about 8.6 minutes of recorded run time across five selected models, but it excludes Large/Huge and must not be used as the full-roster runtime estimate.
+
+Run the full v2 fixed-recipe roster in PowerShell after reviewing the runtime estimate. This arm remains validation-only so the official test set is not used for model or recipe selection. The three explicitly named component ablations change one loss weight at a time and are reported as separate configurations:
+
+```powershell
+Set-Location -LiteralPath 'E:\Evan_Confidential\CV Model'
+New-Item -ItemType Directory -Force runs\cifar100-paper-v2-main | Out-Null
+nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv |
+  Out-File runs\cifar100-paper-v2-main\hardware.txt
+.\.venv-win\Scripts\python.exe -c "import platform, torch; print('Python:', platform.python_version()); print('PyTorch:', torch.__version__); print('CUDA runtime:', torch.version.cuda); print('GPU:', torch.cuda.get_device_name(0))" |
+  Out-File -Append runs\cifar100-paper-v2-main\hardware.txt
+
+.\.venv-win\Scripts\python.exe -m nesy_cvt benchmark `
+  --device cuda --epochs 100 --batch-size 16 --seeds 42 43 44 `
+  --models nesy_cvt_nano nesy_cvt_tiny nesy_cvt_small nesy_cvt_base `
+    nesy_cvt_large nesy_cvt_huge nesy_cvt nesy_cvt_coarse_concepts `
+    nesy_cvt_no_fft nesy_cvt_no_transformer nesy_cvt_no_concept_auxiliary `
+    nesy_cvt_linear_classifier nesy_cvt_no_rule_fusion `
+    nesy_cvt_no_hierarchy_consistency nesy_cvt_no_coarse_supervision `
+    resnet18_cifar mobilenet_v3_small `
+    densenet121_cifar convnext_tiny_cifar swin_t_cifar vit_tiny_patch4 `
+    wide_resnet28x10_cifar `
+  --data-recipe cifar100_standard_v2 --optimizer sgd `
+  --learning-rate 0.1 --weight-decay 0.0005 --concept-loss-weight 0.1 `
+  --lr-schedule cosine --grad-clip 0 `
+  --data-dir data --download `
+  --validation-only `
+  --runs-dir runs/cifar100-paper-v2-main `
+  --report results/cifar100-paper-v2-main-validation.json `
+  --resume
+```
+
+This is the fixed-recipe arm, not the validation-tuned arm. It uses the same recipe as the one-epoch preflight (SGD momentum 0.9). The no-rule-fusion, no-hierarchy-consistency, and no-coarse-supervision variants each set only their named loss weight to zero; their per-model effective weights are stored in the result metadata. Before making a SOTA claim, tune each architecture with the same bounded validation budget and report scratch-trained and pretrained regimes separately. This command alone cannot establish SOTA.
+
+If the run is interrupted, wait until the Python process has exited, then run the same block again. `--resume` reuses completed model/seed runs when their recorded settings and GPU match; it saves the incomplete run's progress and best checkpoint with an `interrupted` suffix, then restarts that model/seed from epoch 1. Keep the same output paths and flags.
+
+Once all settings are locked, create detailed results and before/after figures in new paths:
+
+```powershell
+.\.venv-win\Scripts\python.exe -m nesy_cvt benchmark-eval `
+  --device cuda --batch-size 16 `
+  --runs-dir runs/cifar100-paper-v2-main `
+  --data-dir data --download `
+  --report results/cifar100-paper-v2-detailed.json
+
+.\.venv-win\Scripts\python.exe -m nesy_cvt benchmark-report `
+  --input results/cifar100-paper-v2-detailed.json `
+  --output-dir results/cifar100-paper-v2-detailed-report
+
+.\.venv-win\Scripts\python.exe -m nesy_cvt benchmark-compare `
+  --before docs/benchmark/cifar100-taxonomy-family/cifar100-taxonomy-detailed.json `
+  --after results/cifar100-paper-v2-detailed.json `
+  --output-dir results/cifar100-paper-before-after
+
+.\.venv-win\Scripts\python.exe -m nesy_cvt benchmark-curves `
+  --before-runs runs/cifar100-taxonomy-family `
+  --after-runs runs/cifar100-paper-v2-main `
+  --output-dir results/cifar100-paper-learning-curves
+```
+
+`benchmark-compare` requires matching test-data fingerprints and exports an all-metric CSV plus Plotly Express HTML/PNG charts. The results remain exploratory because this project previously inspected the official CIFAR-100 test set.
+
 ## 5. Metrics and reporting layout
 
 ### Main quality table
@@ -88,7 +187,7 @@ An ablation that changes several components at once should be labeled as a branc
 
 ### Resource table
 
-- Total/trainable parameters (M), checkpoint size (MB), estimated FLOPs (G/image), batch-1 device latency (p50/p95), model-only batched FPS, end-to-end pipeline images/s, training duration, and peak allocated GPU memory.
+- Total/trainable parameters (M), checkpoint size (MB), estimated FLOPs (G/image), batch-1 device latency (p50/p95), model-only batched FPS, end-to-end pipeline images/s, training duration, training peak allocated memory, and inference peak allocated memory.
 - Mark FLOPs as an analytical estimate with the exact counting convention; they exclude some elementwise and backend work.
 - Keep batch-1 latency (milliseconds per image) separate from batched throughput. State that current single-image latency excludes data loading and host-to-device transfer.
 - State the RTX 5070, software versions, precision, and timing batch size beside every speed figure.

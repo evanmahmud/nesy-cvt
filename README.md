@@ -18,6 +18,7 @@
 | Full comparison table and plots | [CIFAR-100 benchmark artifacts](docs/benchmark/cifar100-taxonomy-family/) |
 | Manuscript draft | [docs/paper_draft.md](docs/paper_draft.md) |
 | Paper architecture, model lineup, and SOTA experiment plan | [docs/paper_experiment_plan.md](docs/paper_experiment_plan.md) |
+| Preserved before/after result archive | [docs/paper_artifacts.md](docs/paper_artifacts.md) |
 
 > **Research status.** This is an early research release, not a state-of-the-art claim. The research goal is to test a scoped CIFAR-100 SOTA claim with validated, current baselines and a locked evaluation protocol. The reported CIFAR-100 test set was inspected in prior exploratory runs, so existing results are exploratory rather than evidence from a pristine, untouched holdout. The method's symbolic rules encode only the supplied CIFAR-100 hierarchy; this does not establish general reasoning, human interpretability, robustness, or transfer to other datasets.
 

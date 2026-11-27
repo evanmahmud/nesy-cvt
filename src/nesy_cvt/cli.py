@@ -57,12 +57,35 @@ def build_parser() -> argparse.ArgumentParser:
     benchmark_parser.add_argument("--learning-rate", type=float, default=3e-4)
     benchmark_parser.add_argument("--taxonomy-rule-weight", type=float, default=0.5)
     benchmark_parser.add_argument("--taxonomy-consistency-weight", type=float, default=0.1)
+    benchmark_parser.add_argument("--concept-loss-weight", type=float, default=0.1)
+    benchmark_parser.add_argument(
+        "--data-recipe",
+        choices=["legacy_v1", "cifar100_standard_v2"],
+        default="legacy_v1",
+        help="Keep historical transforms or use CIFAR crop/flip/normalization v2.",
+    )
+    benchmark_parser.add_argument(
+        "--optimizer", choices=["adamw", "sgd"], default="adamw"
+    )
+    benchmark_parser.add_argument("--weight-decay", type=float, default=0.01)
+    benchmark_parser.add_argument(
+        "--lr-schedule", choices=["none", "cosine"], default="none"
+    )
+    benchmark_parser.add_argument(
+        "--grad-clip", type=float, default=1.0,
+        help="Maximum gradient norm; use 0 to disable clipping.",
+    )
     benchmark_parser.add_argument("--val-per-class", type=int, default=50)
     benchmark_parser.add_argument("--warmup-batches", type=int, default=10)
     benchmark_parser.add_argument("--data-dir", default="data")
     benchmark_parser.add_argument("--download", action="store_true")
     benchmark_parser.add_argument("--runs-dir", default="runs/cifar100-comparison")
     benchmark_parser.add_argument("--report", default="results/cifar100-comparison.json")
+    benchmark_parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Reuse finished model/seed runs and preserve partial files before retrying an interrupted run.",
+    )
     benchmark_parser.add_argument("--device", choices=["auto", "cuda", "cpu"], default="auto")
     benchmark_parser.add_argument(
         "--validation-only",
@@ -89,6 +112,26 @@ def build_parser() -> argparse.ArgumentParser:
     benchmark_report_parser.add_argument("--input", default="results/cifar100-detailed.json")
     benchmark_report_parser.add_argument(
         "--output-dir", default="results/cifar100-detailed-report"
+    )
+
+    benchmark_compare_parser = subcommands.add_parser(
+        "benchmark-compare",
+        help="Create preserved before/after tables and Plotly figures from two test reports",
+    )
+    benchmark_compare_parser.add_argument("--before", required=True)
+    benchmark_compare_parser.add_argument("--after", required=True)
+    benchmark_compare_parser.add_argument(
+        "--output-dir", default="results/cifar100-paper-before-after"
+    )
+
+    curve_parser = subcommands.add_parser(
+        "benchmark-curves",
+        help="Plot before/after train and validation curves from progress logs",
+    )
+    curve_parser.add_argument("--before-runs", required=True)
+    curve_parser.add_argument("--after-runs", required=True)
+    curve_parser.add_argument(
+        "--output-dir", default="results/cifar100-paper-learning-curves"
     )
 
     export_parser = subcommands.add_parser("export", help="Write config and HF model card template")
@@ -161,6 +204,13 @@ def main(argv: list[str] | None = None) -> int:
             validation_only=args.validation_only,
             taxonomy_rule_weight=args.taxonomy_rule_weight,
             taxonomy_consistency_weight=args.taxonomy_consistency_weight,
+            concept_loss_weight=args.concept_loss_weight,
+            data_recipe=args.data_recipe,
+            optimizer_name=args.optimizer,
+            weight_decay=args.weight_decay,
+            lr_schedule=args.lr_schedule,
+            grad_clip=args.grad_clip,
+            resume=args.resume,
         )
         return 0
 
@@ -192,6 +242,22 @@ def main(argv: list[str] | None = None) -> int:
         from .reporting import create_benchmark_report
 
         outputs = create_benchmark_report(args.input, args.output_dir)
+        print(json.dumps(outputs, indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "benchmark-compare":
+        from .reporting import create_before_after_report
+
+        outputs = create_before_after_report(args.before, args.after, args.output_dir)
+        print(json.dumps(outputs, indent=2, sort_keys=True))
+        return 0
+
+    if args.command == "benchmark-curves":
+        from .reporting import create_training_curve_report
+
+        outputs = create_training_curve_report(
+            args.before_runs, args.after_runs, args.output_dir
+        )
         print(json.dumps(outputs, indent=2, sort_keys=True))
         return 0
 

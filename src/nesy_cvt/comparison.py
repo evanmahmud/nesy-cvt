@@ -7,6 +7,7 @@ import math
 import pickle
 import platform
 import random
+import shutil
 import statistics
 import time
 from collections import defaultdict
@@ -26,6 +27,60 @@ from .metrics import (
 from .model_factory import MODEL_NAMES, build_classifier, config_for_model
 from .profiling import estimate_flops_per_image
 from .runtime import resolve_device
+
+
+def _completed_run_for_resume(
+    run_dir: Path,
+    *,
+    model_name: str,
+    seed: int,
+    expected_config: dict[str, Any],
+    expected_hardware: str,
+) -> dict[str, Any] | None:
+    metrics_path = run_dir / "metrics.json"
+    if not metrics_path.is_file():
+        return None
+    payload = json.loads(metrics_path.read_text(encoding="utf-8"))
+    record = payload.get("metrics")
+    if not isinstance(record, dict):
+        raise ValueError(f"Invalid completed-run metadata in {metrics_path}")
+    if record.get("model") != model_name or int(record.get("seed", -1)) != seed:
+        raise ValueError(f"Resume metadata does not match {model_name}, seed {seed}: {metrics_path}")
+    if record.get("hardware") != expected_hardware:
+        raise ValueError(f"Resume hardware does not match this run: {metrics_path}")
+    actual_config = record.get("config", {})
+    mismatches = [
+        key
+        for key, expected in expected_config.items()
+        if actual_config.get(key) != expected
+    ]
+    if mismatches:
+        raise ValueError(
+            f"Cannot resume {model_name}, seed {seed}; run settings differ for: "
+            + ", ".join(mismatches)
+        )
+    if not (run_dir / "config.json").is_file() or not (run_dir / "pytorch_model.bin").is_file():
+        raise ValueError(f"Completed run is missing its model files: {run_dir}")
+    record["epochs"] = payload.get("extra", {}).get("epochs", [])
+    record["run_dir"] = str(run_dir)
+    return record
+
+
+def _preserve_interrupted_run(run_dir: Path) -> None:
+    stamp = time.time_ns()
+    preserved = []
+    for name in ("progress.json", "pytorch_model.bin", "pytorch_model.bin.tmp"):
+        source = run_dir / name
+        if source.is_file():
+            destination = source.with_name(f"{source.stem}.interrupted-{stamp}{source.suffix}")
+            shutil.copy2(source, destination)
+            preserved.append(destination.name)
+    if preserved:
+        print(
+            f"Preserved incomplete run files for review in {run_dir}: "
+            + ", ".join(preserved),
+            flush=True,
+        )
 
 
 def _seed_everything(seed: int) -> None:
@@ -97,21 +152,49 @@ def _build_loaders(
     shuffle_seed: int,
     supervised_concepts: bool = False,
     validation_only: bool = False,
+    data_recipe: str = "legacy_v1",
 ):
     import torch
     from torch.utils.data import DataLoader, Subset
     from torchvision import datasets, transforms
 
-    train_transform = transforms.Compose(
-        [
-            transforms.Resize((32, 32)),
-            transforms.AutoAugment(transforms.AutoAugmentPolicy.CIFAR10),
-            transforms.ToTensor(),
-        ]
-    )
-    eval_transform = transforms.Compose(
-        [transforms.Resize((32, 32)), transforms.ToTensor()]
-    )
+    if data_recipe == "legacy_v1":
+        train_transform = transforms.Compose(
+            [
+                transforms.Resize((32, 32)),
+                transforms.AutoAugment(transforms.AutoAugmentPolicy.CIFAR10),
+                transforms.ToTensor(),
+            ]
+        )
+        eval_transform = transforms.Compose(
+            [transforms.Resize((32, 32)), transforms.ToTensor()]
+        )
+        train_transform_description = "Resize(32), AutoAugment(CIFAR10 policy), ToTensor"
+        eval_transform_description = "Resize(32), ToTensor"
+    elif data_recipe == "cifar100_standard_v2":
+        normalize = transforms.Normalize(
+            mean=(0.5071, 0.4867, 0.4408),
+            std=(0.2675, 0.2565, 0.2761),
+        )
+        train_transform = transforms.Compose(
+            [
+                transforms.RandomCrop(32, padding=4),
+                transforms.RandomHorizontalFlip(),
+                transforms.AutoAugment(transforms.AutoAugmentPolicy.CIFAR10),
+                transforms.ToTensor(),
+                normalize,
+            ]
+        )
+        eval_transform = transforms.Compose(
+            [transforms.ToTensor(), normalize]
+        )
+        train_transform_description = (
+            "RandomCrop(32,padding=4), RandomHorizontalFlip, "
+            "AutoAugment(CIFAR10 policy), ToTensor, Normalize(CIFAR100 stats)"
+        )
+        eval_transform_description = "ToTensor, Normalize(CIFAR100 stats)"
+    else:
+        raise ValueError(f"Unknown CIFAR-100 data recipe: {data_recipe}")
     train_augmented = datasets.CIFAR100(
         root=data_dir, train=True, download=download, transform=train_transform
     )
@@ -150,7 +233,7 @@ def _build_loaders(
         if test_set is not None
         else None
     )
-    return train_loader, val_loader, test_loader
+    return train_loader, val_loader, test_loader, train_transform_description, eval_transform_description
 
 
 def _measure_single_image_latency(
@@ -344,6 +427,12 @@ def _train_one(
     validation_only: bool = False,
     taxonomy_rule_weight: float = 0.5,
     taxonomy_consistency_weight: float = 0.1,
+    concept_loss_weight: float = 0.1,
+    data_recipe: str = "legacy_v1",
+    optimizer_name: str = "adamw",
+    weight_decay: float = 0.01,
+    lr_schedule: str = "none",
+    grad_clip: float = 1.0,
 ) -> dict[str, Any]:
     import torch
     import torch.nn.functional as F
@@ -352,13 +441,27 @@ def _train_one(
     _seed_everything(seed)
     output_dir.mkdir(parents=True, exist_ok=True)
     config = config_for_model(model_name, NesyCVTConfig())
+    effective_taxonomy_rule_weight = (
+        0.0 if model_name == "nesy_cvt_no_rule_fusion" else taxonomy_rule_weight
+    )
+    effective_taxonomy_consistency_weight = (
+        0.0
+        if model_name == "nesy_cvt_no_hierarchy_consistency"
+        else taxonomy_consistency_weight
+    )
+    effective_concept_loss_weight = (
+        0.0
+        if model_name == "nesy_cvt_no_coarse_supervision"
+        else concept_loss_weight
+    )
     if config.reasoning_mode == "cifar100_taxonomy":
         config = replace(
             config,
-            taxonomy_rule_weight=taxonomy_rule_weight,
-            taxonomy_consistency_weight=taxonomy_consistency_weight,
+            taxonomy_rule_weight=effective_taxonomy_rule_weight,
+            taxonomy_consistency_weight=effective_taxonomy_consistency_weight,
+            concept_loss_weight=effective_concept_loss_weight,
         )
-    train_loader, val_loader, test_loader = _build_loaders(
+    train_loader, val_loader, test_loader, train_transform_description, eval_transform_description = _build_loaders(
         data_dir,
         download=download,
         batch_size=batch_size,
@@ -367,9 +470,25 @@ def _train_one(
         shuffle_seed=seed,
         supervised_concepts=config.concept_schema == "cifar100_coarse20",
         validation_only=validation_only,
+        data_recipe=data_recipe,
     )
     model = build_classifier(model_name, config).to(device)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+    if optimizer_name == "adamw":
+        optimizer = torch.optim.AdamW(
+            model.parameters(), lr=learning_rate, weight_decay=weight_decay
+        )
+    elif optimizer_name == "sgd":
+        optimizer = torch.optim.SGD(
+            model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=weight_decay
+        )
+    else:
+        raise ValueError(f"Unknown optimizer: {optimizer_name}")
+    if lr_schedule == "cosine":
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
+    elif lr_schedule == "none":
+        scheduler = None
+    else:
+        raise ValueError(f"Unknown learning-rate schedule: {lr_schedule}")
     if device.type == "cuda":
         torch.cuda.reset_peak_memory_stats(device)
         torch.cuda.synchronize(device)
@@ -382,8 +501,11 @@ def _train_one(
     best_epoch = 0
     best_state: dict[str, torch.Tensor] | None = None
     history: list[dict[str, float | int]] = []
+    train_peak_mb = 0.0
     train_start = time.perf_counter()
     for epoch in range(epochs):
+        if device.type == "cuda":
+            torch.cuda.reset_peak_memory_stats(device)
         model.train()
         total_loss = 0.0
         steps = 0
@@ -408,10 +530,18 @@ def _train_one(
             if loss is None or not torch.isfinite(loss):
                 raise FloatingPointError(f"Non-finite training loss for {model_name}, seed {seed}")
             loss.backward()
-            nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            if grad_clip > 0:
+                nn.utils.clip_grad_norm_(model.parameters(), max_norm=grad_clip)
             optimizer.step()
             total_loss += float(loss.detach().cpu())
             steps += 1
+
+        if device.type == "cuda":
+            torch.cuda.synchronize(device)
+            train_peak_mb = max(
+                train_peak_mb,
+                torch.cuda.max_memory_allocated(device) / (1024**2),
+            )
 
         val_metrics = _evaluate(
             model,
@@ -466,6 +596,8 @@ def _train_one(
             checkpoint_tmp = output_dir / "pytorch_model.bin.tmp"
             torch.save(best_state, checkpoint_tmp)
             checkpoint_tmp.replace(output_dir / "pytorch_model.bin")
+        if scheduler is not None:
+            scheduler.step()
         (output_dir / "progress.json").write_text(
             json.dumps(
                 {
@@ -490,14 +622,16 @@ def _train_one(
     if device.type == "cuda":
         torch.cuda.synchronize(device)
     training_seconds = time.perf_counter() - train_start
-    train_peak_mb = (
-        torch.cuda.max_memory_allocated(device) / (1024**2) if device.type == "cuda" else 0.0
-    )
     if best_state is None:
         raise RuntimeError("Training produced no validation checkpoint")
     model.load_state_dict(best_state)
     model.eval()
     test_metrics = None
+    validation_metrics = None
+    if validation_only:
+        validation_metrics = _evaluate(
+            model, val_loader, device, warmup_batches=warmup_batches
+        )
     if test_loader is not None:
         test_metrics = _evaluate(model, test_loader, device, warmup_batches=warmup_batches)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -537,14 +671,20 @@ def _train_one(
         "model_config": config.to_dict(),
         "train_peak_gpu_memory_mb": train_peak_mb,
         "epochs": history,
+        "validation": validation_metrics,
         "config": {
             "dataset": "CIFAR-100 fine labels",
             "input_size": config.image_size,
-            "train_transform": "Resize(32), AutoAugment(CIFAR10 policy), ToTensor",
-            "eval_transform": "Resize(32), ToTensor",
+            "train_transform": train_transform_description,
+            "eval_transform": eval_transform_description,
             "batch_size": batch_size,
-            "optimizer": "AdamW",
+            "optimizer": optimizer_name.upper(),
+            "optimizer_momentum": 0.9 if optimizer_name == "sgd" else None,
             "learning_rate": learning_rate,
+            "weight_decay": weight_decay,
+            "lr_schedule": lr_schedule,
+            "grad_clip_norm": grad_clip,
+            "data_recipe": data_recipe,
             "epochs": epochs,
             "validation_split_seed": 1729,
             "validation_images_per_class": val_per_class,
@@ -555,8 +695,9 @@ def _train_one(
                 if config.concept_schema == "cifar100_coarse20"
                 else "none; latent auxiliary class head"
             ),
-            "taxonomy_rule_weight": taxonomy_rule_weight,
-            "taxonomy_consistency_weight": taxonomy_consistency_weight,
+            "taxonomy_rule_weight": effective_taxonomy_rule_weight,
+            "taxonomy_consistency_weight": effective_taxonomy_consistency_weight,
+            "concept_loss_weight": effective_concept_loss_weight,
             "test_evaluated": test_metrics is not None,
         },
     }
@@ -580,6 +721,13 @@ def run_cifar100_comparison(
     validation_only: bool = False,
     taxonomy_rule_weight: float = 0.5,
     taxonomy_consistency_weight: float = 0.1,
+    concept_loss_weight: float = 0.1,
+    data_recipe: str = "legacy_v1",
+    optimizer_name: str = "adamw",
+    weight_decay: float = 0.01,
+    lr_schedule: str = "none",
+    grad_clip: float = 1.0,
+    resume: bool = False,
 ) -> dict[str, Any]:
     import torch
 
@@ -590,7 +738,11 @@ def run_cifar100_comparison(
         raise ValueError("At least one model and one seed are required")
     if epochs <= 0 or batch_size <= 0 or val_per_class <= 0:
         raise ValueError("epochs, batch-size, and val-per-class must be positive")
-    if taxonomy_rule_weight < 0 or taxonomy_consistency_weight < 0:
+    if (
+        taxonomy_rule_weight < 0
+        or taxonomy_consistency_weight < 0
+        or concept_loss_weight < 0
+    ):
         raise ValueError("taxonomy weights must be non-negative")
 
     device = resolve_device(torch, device_name)
@@ -599,9 +751,68 @@ def run_cifar100_comparison(
         device_label = f"{device} ({torch.cuda.get_device_name(device)})"
     records: list[dict[str, Any]] = []
     root = Path(runs_dir)
+    train_transform_description = (
+        "Resize(32), AutoAugment(CIFAR10 policy), ToTensor"
+        if data_recipe == "legacy_v1"
+        else "RandomCrop(32,padding=4), RandomHorizontalFlip, "
+        "AutoAugment(CIFAR10 policy), ToTensor, Normalize(CIFAR100 stats)"
+    )
+    eval_transform_description = (
+        "Resize(32), ToTensor"
+        if data_recipe == "legacy_v1"
+        else "ToTensor, Normalize(CIFAR100 stats)"
+    )
     for model_name in models:
         for seed in seeds:
             run_dir = root / model_name / f"seed-{seed}"
+            if resume:
+                effective_rule_weight = (
+                    0.0 if model_name == "nesy_cvt_no_rule_fusion" else taxonomy_rule_weight
+                )
+                effective_consistency_weight = (
+                    0.0
+                    if model_name == "nesy_cvt_no_hierarchy_consistency"
+                    else taxonomy_consistency_weight
+                )
+                effective_concept_weight = (
+                    0.0
+                    if model_name == "nesy_cvt_no_coarse_supervision"
+                    else concept_loss_weight
+                )
+                expected_config = {
+                    "dataset": "CIFAR-100 fine labels",
+                    "input_size": 32,
+                    "train_transform": train_transform_description,
+                    "eval_transform": eval_transform_description,
+                    "batch_size": batch_size,
+                    "optimizer": optimizer_name.upper(),
+                    "optimizer_momentum": 0.9 if optimizer_name == "sgd" else None,
+                    "learning_rate": learning_rate,
+                    "weight_decay": weight_decay,
+                    "lr_schedule": lr_schedule,
+                    "grad_clip_norm": grad_clip,
+                    "data_recipe": data_recipe,
+                    "epochs": epochs,
+                    "validation_split_seed": 1729,
+                    "validation_images_per_class": val_per_class,
+                    "precision": "float32",
+                    "taxonomy_rule_weight": effective_rule_weight,
+                    "taxonomy_consistency_weight": effective_consistency_weight,
+                    "concept_loss_weight": effective_concept_weight,
+                    "test_evaluated": not validation_only,
+                }
+                reused = _completed_run_for_resume(
+                    run_dir,
+                    model_name=model_name,
+                    seed=seed,
+                    expected_config=expected_config,
+                    expected_hardware=device_label,
+                )
+                if reused is not None:
+                    print(f"Reusing completed run: {model_name}, seed {seed}", flush=True)
+                    records.append(reused)
+                    continue
+                _preserve_interrupted_run(run_dir)
             print(f"Starting {model_name}, seed {seed} on {device_label}", flush=True)
             record = _train_one(
                 model_name,
@@ -618,6 +829,12 @@ def run_cifar100_comparison(
                 validation_only=validation_only,
                 taxonomy_rule_weight=taxonomy_rule_weight,
                 taxonomy_consistency_weight=taxonomy_consistency_weight,
+                concept_loss_weight=concept_loss_weight,
+                data_recipe=data_recipe,
+                optimizer_name=optimizer_name,
+                weight_decay=weight_decay,
+                lr_schedule=lr_schedule,
+                grad_clip=grad_clip,
             )
             record["hardware"] = device_label
             record["python"] = platform.python_version()
@@ -660,6 +877,7 @@ def run_cifar100_comparison(
         "single_image_latency_mean_ms",
         "single_image_latency_p50_ms",
         "single_image_latency_p95_ms",
+        "train_peak_gpu_memory_mb",
         "peak_gpu_memory_mb",
         "training_seconds_including_validation",
         "num_parameters",
@@ -671,27 +889,20 @@ def run_cifar100_comparison(
         "hierarchy_consistency_mae",
     )
     aggregate: dict[str, dict[str, dict[str, float | int | None]]] = {}
-    report_metrics = (
-        (
-            "best_validation_top1",
-            "best_validation_top5",
-            "best_validation_coarse_top1",
-            "best_validation_taxonomy_agreement",
-            "best_validation_hierarchy_consistency_mae",
-        )
-        if validation_only
-        else aggregate_metrics
-    )
+    report_metrics = aggregate_metrics
     for model_name in models:
         model_records = [record for record in records if record["model"] == model_name]
         aggregate[model_name] = {}
         for metric in report_metrics:
             values = [
-                float(record["test"][metric])
+                float(record["validation"][metric])
+                if validation_only and record.get("validation") is not None and metric in record["validation"]
+                else float(record["test"][metric])
                 if record.get("test") is not None and metric in record["test"]
                 else float(record[metric])
                 for record in model_records
-                if (record.get("test") is not None and metric in record["test"])
+                if (validation_only and record.get("validation") is not None and metric in record["validation"])
+                or (record.get("test") is not None and metric in record["test"])
                 or (metric in record and record[metric] is not None)
             ]
             if not values:
@@ -713,15 +924,34 @@ def run_cifar100_comparison(
                 else "official 10,000-image test split; evaluated after selecting best validation checkpoint"
             ),
             "validation_only": validation_only,
+            "resume_enabled": resume,
             "models": models,
             "seeds": seeds,
             "epochs": epochs,
             "batch_size": batch_size,
             "learning_rate": learning_rate,
+            "weight_decay": weight_decay,
             "taxonomy_rule_weight": taxonomy_rule_weight,
             "taxonomy_consistency_weight": taxonomy_consistency_weight,
-            "optimizer": "AdamW",
-            "augmentation": "Resize(32), AutoAugment(CIFAR10 policy), ToTensor",
+            "concept_loss_weight": concept_loss_weight,
+            "component_ablation_overrides": {
+                "nesy_cvt_no_rule_fusion": {"taxonomy_rule_weight": 0.0},
+                "nesy_cvt_no_hierarchy_consistency": {
+                    "taxonomy_consistency_weight": 0.0
+                },
+                "nesy_cvt_no_coarse_supervision": {"concept_loss_weight": 0.0},
+            },
+            "optimizer": optimizer_name.upper(),
+            "optimizer_momentum": 0.9 if optimizer_name == "sgd" else None,
+            "lr_schedule": lr_schedule,
+            "grad_clip_norm": grad_clip,
+            "data_recipe": data_recipe,
+            "augmentation": (
+                "Resize(32), AutoAugment(CIFAR10 policy), ToTensor"
+                if data_recipe == "legacy_v1"
+                else "RandomCrop(32,pad=4), RandomHorizontalFlip, AutoAugment(CIFAR10 policy), "
+                "ToTensor, Normalize(CIFAR100 stats)"
+            ),
             "validation_selection": "best validation top-1 checkpoint",
             "class_metrics": "macro-averaged one-vs-rest precision, recall, and F1",
             "auc": "macro one-vs-rest ROC AUC from softmax probabilities",
@@ -741,11 +971,8 @@ def run_cifar100_comparison(
         },
         "hardware": device_label,
         "runs": records,
-        (
-            "validation_aggregate_mean_and_sample_std"
-            if validation_only
-            else "aggregate_mean_and_sample_std"
-        ): aggregate,
+        "aggregate_mean_and_sample_std": aggregate,
+        "validation_aggregate_mean_and_sample_std": aggregate if validation_only else None,
     }
     report_file = Path(report_path)
     report_file.parent.mkdir(parents=True, exist_ok=True)
@@ -783,7 +1010,8 @@ def run_cifar100_comparison(
                 ),
             }
             for metric in aggregate_metrics:
-                row[metric] = (record.get("test") or {}).get(metric, record.get(metric))
+                source_metrics = record.get("validation") if validation_only else record.get("test")
+                row[metric] = (source_metrics or {}).get(metric, record.get(metric))
             writer.writerow(row)
     print(f"Benchmark JSON: {report_file}", flush=True)
     print(f"Benchmark CSV: {csv_path}", flush=True)
