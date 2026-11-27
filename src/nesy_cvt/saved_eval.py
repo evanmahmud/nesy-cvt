@@ -32,6 +32,8 @@ RUN_PROTOCOL_KEYS = (
     "data_recipe",
     "epochs",
     "validation_split_seed",
+    "validation_split_strategy",
+    "folds",
     "validation_images_per_class",
     "precision",
 )
@@ -67,6 +69,8 @@ RUN_METRICS = (
 CSV_FIELDS = (
     "model",
     "seed",
+    "fold_index",
+    "folds",
     "best_epoch_by_validation_top1",
     "top1",
     "top5",
@@ -118,6 +122,9 @@ def _load_run_metadata(run_dir: Path) -> dict[str, Any]:
     config.setdefault("lr_schedule", "none")
     config.setdefault("grad_clip_norm", 1.0)
     config.setdefault("data_recipe", "legacy_v1")
+    config.setdefault("validation_split_strategy", "fixed_stratified_holdout")
+    config.setdefault("folds", 1)
+    config.setdefault("fold_index", 1)
 
     checkpoint = run_dir / "pytorch_model.bin"
     config_file = run_dir / "config.json"
@@ -130,6 +137,8 @@ def _load_run_metadata(run_dir: Path) -> dict[str, Any]:
         "run_dir": run_dir,
         "model": str(metrics.get("model", run_dir.parent.name)),
         "seed": seed,
+        "fold_index": int(config.get("fold_index", 1)),
+        "folds": int(config.get("folds", 1)),
         "metrics": metrics,
         "config": config,
         "checkpoint": checkpoint,
@@ -149,18 +158,29 @@ def _aggregate_runs(records: list[dict[str, Any]]) -> dict[str, dict[str, dict[s
         model_records = [record for record in records if record["model"] == model_name]
         aggregates[model_name] = {}
         for metric in (*TEST_METRICS, *RUN_METRICS):
-            values = [
-                float(record["test"][metric])
-                if metric in record["test"]
-                else float(record[metric])
-                for record in model_records
-                if metric in record["test"] or record.get(metric) is not None
-            ]
-            if values:
+            values_by_seed: dict[int, list[float]] = {}
+            for record in model_records:
+                if metric in record["test"]:
+                    value = record["test"][metric]
+                else:
+                    value = record.get(metric)
+                if value is not None:
+                    values_by_seed.setdefault(int(record["seed"]), []).append(float(value))
+            fold_values = [value for values in values_by_seed.values() for value in values]
+            if values_by_seed:
+                if metric == "training_seconds_including_validation":
+                    seed_aggregates = [sum(values) for values in values_by_seed.values()]
+                elif metric in {"train_peak_gpu_memory_mb", "peak_gpu_memory_mb"}:
+                    seed_aggregates = [max(values) for values in values_by_seed.values()]
+                else:
+                    seed_aggregates = [statistics.mean(values) for values in values_by_seed.values()]
                 aggregates[model_name][metric] = {
-                    "mean": statistics.mean(values),
-                    "sample_std": statistics.stdev(values) if len(values) > 1 else None,
-                    "n": len(values),
+                    "mean": statistics.mean(seed_aggregates),
+                    "sample_std": statistics.stdev(seed_aggregates) if len(seed_aggregates) > 1 else None,
+                    "n": len(seed_aggregates),
+                    "fold_observations": len(fold_values),
+                    "fold_sample_std": statistics.stdev(fold_values) if len(fold_values) > 1 else None,
+                    "folds": max(int(record.get("folds", 1)) for record in model_records),
                 }
     return aggregates
 
@@ -183,13 +203,7 @@ def evaluate_saved_checkpoints(
     from .comparison import _CoarseTargetDataset
 
     root = Path(runs_dir)
-    run_dirs = sorted(
-        path
-        for model_dir in root.iterdir()
-        if model_dir.is_dir()
-        for path in model_dir.glob("seed-*")
-        if path.is_dir()
-    )
+    run_dirs = sorted(path.parent for path in root.rglob("metrics.json"))
     if not run_dirs:
         raise FileNotFoundError(f"No model/seed checkpoint folders found under {root}")
     manifests = [_load_run_metadata(path) for path in run_dirs]
@@ -207,6 +221,7 @@ def evaluate_saved_checkpoints(
         raise ValueError(f"Expected CIFAR-100 checkpoints, found {protocol['dataset']!r}")
 
     seeds_by_model: dict[str, set[int]] = {}
+    folds_by_model_seed: dict[str, dict[int, set[int]]] = {}
     loss_weights_by_model: dict[str, dict[str, float]] = {}
     weight_keys = (
         "taxonomy_rule_weight",
@@ -216,6 +231,9 @@ def evaluate_saved_checkpoints(
     model_weight_signatures: dict[str, set[tuple[float, ...]]] = {}
     for manifest in manifests:
         seeds_by_model.setdefault(manifest["model"], set()).add(manifest["seed"])
+        folds_by_model_seed.setdefault(manifest["model"], {}).setdefault(
+            manifest["seed"], set()
+        ).add(manifest["fold_index"])
         model_name = manifest["model"]
         weight_signature = tuple(
             float(manifest["config"].get(key, 0.0)) for key in weight_keys
@@ -224,6 +242,18 @@ def evaluate_saved_checkpoints(
         loss_weights_by_model[model_name] = dict(zip(weight_keys, weight_signature))
     if len({tuple(sorted(seeds)) for seeds in seeds_by_model.values()}) != 1:
         raise ValueError("Each model must have the same seed set for a controlled comparison")
+    expected_folds = set(range(1, int(protocol["folds"]) + 1))
+    incomplete_grids = [
+        f"{model_name}/seed-{seed}"
+        for model_name, seeds in folds_by_model_seed.items()
+        for seed, found_folds in seeds.items()
+        if found_folds != expected_folds
+    ]
+    if incomplete_grids:
+        raise ValueError(
+            "Every model and seed must have exactly one checkpoint per fold; incomplete: "
+            + ", ".join(incomplete_grids)
+        )
     inconsistent_weights = [
         model_name
         for model_name, signatures in model_weight_signatures.items()
@@ -231,7 +261,7 @@ def evaluate_saved_checkpoints(
     ]
     if inconsistent_weights:
         raise ValueError(
-            "Loss weights must be consistent across seeds for each model: "
+            "Loss weights must be consistent across folds and seeds for each model: "
             + ", ".join(sorted(inconsistent_weights))
         )
     protocol["component_loss_weights_by_model"] = loss_weights_by_model
@@ -287,7 +317,10 @@ def evaluate_saved_checkpoints(
             num_workers=0,
         )
 
-        print(f"Evaluating saved checkpoint: {model_name}, seed {manifest['seed']}", flush=True)
+        print(
+            f"Evaluating saved checkpoint: {model_name}, fold {manifest['fold_index']}/{manifest['folds']}, seed {manifest['seed']}",
+            flush=True,
+        )
         test_metrics = _evaluate(
             model,
             test_loader,
@@ -313,6 +346,8 @@ def evaluate_saved_checkpoints(
         record = {
             "model": model_name,
             "seed": manifest["seed"],
+            "fold_index": manifest["fold_index"],
+            "folds": manifest["folds"],
             "best_epoch_by_validation_top1": old_metrics.get(
                 "best_epoch_by_validation_top1"
             ),
@@ -343,16 +378,24 @@ def evaluate_saved_checkpoints(
 
     model_names = sorted(seeds_by_model)
     seed_values = sorted(next(iter(seeds_by_model.values())))
+    fold_count = int(protocol["folds"])
     report: dict[str, Any] = {
         "benchmark_name": "CIFAR-100 saved-checkpoint detailed comparison",
         "evaluation_only": True,
         "protocol": {
             "dataset": "CIFAR-100 fine labels",
             "train_validation": (
-                "same stratified 45,000/5,000 split from the official 50,000-image training "
+                "same deterministic stratified K-fold partition of the official 50,000-image training set "
+                f"({fold_count} folds; approximately {(fold_count - 1) / fold_count:.0%} train and "
+                f"{1 / fold_count:.0%} validation per fold; split seed {protocol['validation_split_seed']})"
+                if fold_count > 1
+                else "same stratified 45,000/5,000 split from the official 50,000-image training "
                 f"set; split seed {protocol['validation_split_seed']}, "
                 f"{protocol['validation_images_per_class']} validation images per class"
             ),
+            "validation_split_strategy": protocol["validation_split_strategy"],
+            "folds": fold_count,
+            "validation_aggregation": "average quality and timing metrics within each seed across folds; sum training time and take peak memory within each seed across folds; then report mean and sample SD across seeds. Fold-level rows are retained",
             "test": "same official CIFAR-100 10,000-image test split for every checkpoint",
             "test_examples": len(test_base),
             "test_data_sha256": test_hash,
@@ -376,7 +419,7 @@ def evaluate_saved_checkpoints(
             ),
             "common_training_protocol": protocol,
             "component_loss_weights_by_model": loss_weights_by_model,
-            "selection_rule": "checkpoint selected by validation top-1 before test evaluation",
+            "selection_rule": "each fold checkpoint selected by that fold's validation top-1 before test evaluation",
             "comparison_scope": (
                 "matched dataset, split, input size, and recorded recipe; this is a fixed-recipe "
                 "comparison, not a claim that each architecture received its individually optimal recipe"

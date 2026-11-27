@@ -100,9 +100,9 @@ An ablation that changes several components at once should be labeled as a branc
 
 1. **Freeze the research question and comparison scope.** Specify “scratch-trained CIFAR-100 fine classification, no external data or pretraining” or a different precise regime. A broad “beats CNNs and Transformers” statement is not a defined benchmark.
 2. **Validate data and training paths.** Check class counts, labels, transformations, model input sizes, logits, per-epoch train/validation curves, and that each reference can learn substantially above chance. Investigate the current weak ConvNeXt and Swin runs before rerunning the full roster.
-3. **Use validation for decisions.** Keep a stratified train/validation split for model selection. Set augmentation, optimizer, schedule, rule weights, checkpoint rule, and epoch count using only training/validation data. Log every tried setting.
+3. **Use cross-validation for decisions.** The primary CIFAR-100 protocol is deterministic stratified 5-fold cross-validation over the official 50,000-image training split. Each fold has about 40,000 training images and 10,000 validation images (100 per class); the same fold assignments are shared by every model and seed. Use validation results for model selection, log every tried setting, and keep the official test split out of development decisions.
 4. **Train enough to converge.** The current 50-epoch AdamW 3e-4 schedule has no learning-rate decay. It is a fixed comparison recipe, not a strong CIFAR-100 recipe for every architecture. Compare a longer schedule with a documented decay schedule and suitable CIFAR augmentation. Give each architecture a bounded, comparable validation-tuning budget.
-5. **Repeat seeds.** Keep at least three seeds for the main table and preferably five for the final primary comparison and key ablations. Report mean, sample standard deviation, and confidence intervals where appropriate. For test-set differences, use paired uncertainty analysis on the same examples; do not interpret seed standard deviation alone as a significance test.
+5. **Repeat seeds.** Keep at least three seeds for the main table and preferably five for the final primary comparison and key ablations. Average the five fold scores within each seed first, then report the mean and sample standard deviation across seeds. Keep all fold-level rows. For test-set differences, use paired uncertainty analysis on the same examples; do not interpret seed standard deviation alone as a significance test.
 6. **Lock evaluation.** Use the official CIFAR-100 test set only after configuration selection. Because this project previously inspected it, state that fact in the paper. Do not make further development choices from the test metrics. Add a separate dataset with a documented hierarchy to evaluate transfer; that supports a generalization claim, not by itself CIFAR-100 SOTA.
 7. **Keep comparisons comparable.** Use the same test examples and label mapping. State scratch/pretrained status, extra training data, resolution, augmentations, number of epochs, checkpoint selection, test-time augmentation, batch size, and precision. Do not mix timing from unlike hardware.
 8. **Archive the experiment.** Record the Git commit, Python/PyTorch/CUDA/driver versions, GPU and CPU, random seeds, split indices or their hash, dataset file hash, full configuration, per-epoch logs, checkpoints or hashes, and evaluation JSON/CSV.
@@ -113,9 +113,9 @@ The historical `legacy_v1` preprocessing remains available unchanged. The separa
 
 ### Runtime estimate
 
-The earlier 13-model comparison recorded 142.3 GPU-hours for 13 models × 3 seeds × 50 epochs on the RTX 5070. The planned 22-model × 3-seed × 100-epoch roster scales to about 482 GPU-hours if every model-epoch took the old roster's average time. The new ablations are smaller than the older Large/Huge variants, so use **roughly 380–500 GPU-hours** for planning (about **16–21 days running continuously**, or 48–63 days at 8 hours/day). This is an estimate: the recipe changes and the large variants have uneven epoch times. It excludes per-model hyperparameter search, confirmatory experiments on a new dataset, and interruptions. The one-epoch preflight accumulated about 8.6 minutes of recorded run time across five selected models, but it excludes Large/Huge and must not be used as the full-roster runtime estimate.
+The earlier 13-model comparison recorded 142.3 GPU-hours for 13 models × 3 seeds × 50 epochs on the RTX 5070. The prior single-holdout estimate for 22 models × 3 seeds × 100 epochs was about 380–500 GPU-hours. Five folds train on 40,000 images each rather than 45,000, so plan for **roughly 1,700–2,300 GPU-hours** for the 22-model × 3-seed × 5-fold × 100-epoch roster (about **71–96 days continuously**, or **213–288 days at 8 hours/day**). This is a rough extrapolation from old runs; model sizes and recipe changes can shift it substantially. It excludes tuning, independent-dataset experiments, test scoring, and interruptions. The one-epoch preflight excluded Large/Huge and is not a full-roster runtime estimate.
 
-Run the full v2 fixed-recipe roster in PowerShell after reviewing the runtime estimate. This arm remains validation-only so the official test set is not used for model or recipe selection. The three explicitly named component ablations change one loss weight at a time and are reported as separate configurations:
+Run the full v2 fixed-recipe roster with **5-fold cross-validation** in PowerShell. This arm remains validation-only so the official test set is not used for model or recipe selection. Every model and seed uses the same five stratified partitions. The three explicitly named component ablations change one loss weight at a time and are reported as separate configurations:
 
 ```powershell
 Set-Location -LiteralPath 'E:\Evan_Confidential\CV Model'
@@ -126,7 +126,7 @@ nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv |
   Out-File -Append runs\cifar100-paper-v2-main\hardware.txt
 
 .\.venv-win\Scripts\python.exe -m nesy_cvt benchmark `
-  --device cuda --epochs 100 --batch-size 16 --seeds 42 43 44 `
+  --device cuda --epochs 100 --batch-size 16 --seeds 42 43 44 --folds 5 `
   --models nesy_cvt_nano nesy_cvt_tiny nesy_cvt_small nesy_cvt_base `
     nesy_cvt_large nesy_cvt_huge nesy_cvt nesy_cvt_coarse_concepts `
     nesy_cvt_no_fft nesy_cvt_no_transformer nesy_cvt_no_concept_auxiliary `
@@ -145,9 +145,9 @@ nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv |
   --resume
 ```
 
-This is the fixed-recipe arm, not the validation-tuned arm. It uses the same recipe as the one-epoch preflight (SGD momentum 0.9). The no-rule-fusion, no-hierarchy-consistency, and no-coarse-supervision variants each set only their named loss weight to zero; their per-model effective weights are stored in the result metadata. Before making a SOTA claim, tune each architecture with the same bounded validation budget and report scratch-trained and pretrained regimes separately. This command alone cannot establish SOTA.
+This is the fixed-recipe arm, not the validation-tuned arm. It uses the same recipe as the one-epoch preflight (SGD momentum 0.9). The no-rule-fusion, no-hierarchy-consistency, and no-coarse-supervision variants each set only their named loss weight to zero; their per-model effective weights are stored in the result metadata. The fold checkpoints are selected on their own validation fold. Before making a SOTA claim, tune each architecture with the same bounded cross-validation budget and report scratch-trained and pretrained regimes separately. This command alone cannot establish SOTA.
 
-If the run is interrupted, wait until the Python process has exited, then run the same block again. `--resume` reuses completed model/seed runs when their recorded settings and GPU match; it saves the incomplete run's progress and best checkpoint with an `interrupted` suffix, then restarts that model/seed from epoch 1. Keep the same output paths and flags.
+If the run is interrupted, wait until the Python process has exited, then run the same block again. `--resume` reuses completed model/fold/seed runs when their recorded settings and GPU match; it preserves incomplete progress and the best checkpoint with an `interrupted` suffix, then restarts that fold/seed from epoch 1. Keep the same output paths and flags.
 
 Once all settings are locked, create detailed results and before/after figures in new paths:
 
@@ -173,7 +173,7 @@ Once all settings are locked, create detailed results and before/after figures i
   --output-dir results/cifar100-paper-learning-curves
 ```
 
-`benchmark-compare` requires matching test-data fingerprints and exports an all-metric CSV plus Plotly Express HTML/PNG charts. The results remain exploratory because this project previously inspected the official CIFAR-100 test set.
+`benchmark-compare` requires matching test-data fingerprints and exports an all-metric CSV plus Plotly Express HTML/PNG charts. The cross-validation validation metrics are the primary development results. Test metrics are secondary and remain exploratory because this project previously inspected the official CIFAR-100 test set.
 
 ## 5. Metrics and reporting layout
 

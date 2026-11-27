@@ -76,6 +76,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Maximum gradient norm; use 0 to disable clipping.",
     )
     benchmark_parser.add_argument("--val-per-class", type=int, default=50)
+    benchmark_parser.add_argument(
+        "--folds",
+        type=int,
+        default=5,
+        help="Stratified K-fold count (default: 5); use 1 for the historical fixed holdout.",
+    )
     benchmark_parser.add_argument("--warmup-batches", type=int, default=10)
     benchmark_parser.add_argument("--data-dir", default="data")
     benchmark_parser.add_argument("--download", action="store_true")
@@ -200,6 +206,7 @@ def main(argv: list[str] | None = None) -> int:
             batch_size=args.batch_size,
             learning_rate=args.learning_rate,
             val_per_class=args.val_per_class,
+            folds=args.folds,
             warmup_batches=args.warmup_batches,
             validation_only=args.validation_only,
             taxonomy_rule_weight=args.taxonomy_rule_weight,

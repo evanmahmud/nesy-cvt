@@ -1,6 +1,6 @@
 # Paper Result and Visualization Archive
 
-This index keeps the historical results separate from the new SOTA-targeted study. Existing files are retained in their original locations; new reports use versioned paths and must not overwrite the historical artifacts.
+This index keeps historical fixed-holdout results separate from the planned five-fold cross-validation study. Existing files are retained in their original locations; new reports use versioned paths and must not overwrite the historical artifacts. The study is designed to test a bounded set of comparisons; it does not guarantee or presume a state-of-the-art result.
 
 ## Before: historical exploratory results
 
@@ -26,7 +26,7 @@ This index keeps the historical results separate from the new SOTA-targeted stud
 
 - **Preflight raw results:** [JSON](paper-artifacts/after-v2-preflight/cifar100-paper-v2-preflight.json) and [CSV](paper-artifacts/after-v2-preflight/cifar100-paper-v2-preflight.csv), with per-epoch logs/checkpoints under `runs/cifar100-paper-v2-preflight/`.
 - **Preflight tables and plots:** [`paper-artifacts/after-v2-preflight/report/`](paper-artifacts/after-v2-preflight/report/). This is a one-epoch, one-seed validation-only pipeline check on five selected architectures; it is not a performance result and does not estimate seed variance.
-- **Full v2 validation study:** reserved paths are `runs/cifar100-paper-v2-main/` and `results/cifar100-paper-v2-main-validation.json`.
+- **Full v2 five-fold validation study:** reserved paths are `runs/cifar100-paper-v2-main/` (organized by model/fold/seed) and `results/cifar100-paper-v2-main-validation.json`. It uses the same deterministic stratified folds for every architecture and seed; validation summaries average folds within each seed before seed-level statistics.
 - **Detailed evaluation and plots:** after model selection is locked, use a separate report path such as `results/cifar100-paper-v2-detailed.json` and `results/cifar100-paper-v2-detailed-report/`.
 - **Learning curves:** use `benchmark-curves` to create separate “before” and “after” validation-curve facets from each run's `progress.json`.
 - **Before/after metrics and figures:** use `benchmark-compare` to write `results/cifar100-paper-before-after/`. The command rejects reports with different test-data fingerprints.
@@ -46,6 +46,6 @@ Existing images are never replaced by new runs. The comparison plots are descrip
 
 ## Paper-ready metric inventory
 
-The v2 detailed-table schema includes top-1/top-5 accuracy, macro precision/recall/F1, macro one-vs-rest ROC AUC, 15-bin ECE, NLL, coarse top-1, fine/coarse agreement, hierarchy-consistency MAE, parameter counts, analytical FLOPs, checkpoint size, batch-1 latency, batched model-only FPS, pipeline images/s, training and inference peak allocated GPU memory, and training duration. The historical reports predate training-memory recording and show inference peak memory only. Report means and sample standard deviations across seeds. Per-seed values, run configuration, code/software metadata, and checkpoint hashes are retained in JSON.
+The v2 detailed-table schema includes top-1/top-5 accuracy, macro precision/recall/F1, macro one-vs-rest ROC AUC, 15-bin ECE, NLL, coarse top-1, fine/coarse agreement, hierarchy-consistency MAE, parameter counts, analytical FLOPs, checkpoint size, batch-1 latency, batched model-only FPS, pipeline images/s, training and inference peak allocated GPU memory, and training duration. The historical reports predate training-memory recording and show inference peak memory only. For cross-validation, report quality metrics averaged over folds within each seed and then mean/sample standard deviation across seeds; training time is summed and peak memory maximized within seed. Keep fold-level values and run configuration in JSON/CSV.
 
 FLOPs are an analytical estimate under the repository's documented convention. The speed and memory figures are specific to the NVIDIA GeForce RTX 5070 and the recorded batch/precision settings.

@@ -156,6 +156,8 @@ Evaluation on the previously inspected CIFAR-100 test split should be labeled ex
 
 The published comparison covers 13 trained model configurations, including all six NeSy-CVT taxonomy sizes and CNN/Transformer references. Each model used the same 45,000/5,000 stratified CIFAR-100 train/validation split, 32×32 inputs, three seeds (42, 43, 44), 50 epochs, batch size 16, and the same official 10,000-image test examples. Checkpoint selection used validation top-1. The earlier exploratory runs inspected that test set, so this matched comparison is not a pristine holdout study.
 
+These are the existing single-holdout results. The new paper-study plan uses stratified 5-fold cross-validation for its primary validation comparison; see [the experiment plan](docs/paper_experiment_plan.md) and [benchmark protocol](docs/benchmarking.md). The planned CV results have not been run yet.
+
 The full table includes accuracy, top-5, macro precision, macro recall, macro F1, macro one-vs-rest AUC, parameter count, estimated FLOPs, checkpoint size, batch-1 latency, batched FPS, peak allocated GPU memory, and training time. It reports mean and sample standard deviation across seeds:
 
 - [Full comparative Markdown table](docs/benchmark/cifar100-taxonomy-family/comparison_table.md)

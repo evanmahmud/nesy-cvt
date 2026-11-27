@@ -145,46 +145,65 @@ def _seed_counts(aggregate: dict[str, Any]) -> set[int]:
 
 def _uncertainty_notice(aggregate: dict[str, Any]) -> str:
     counts = _seed_counts(aggregate)
+    fold_counts = {
+        int(metric.get("folds", 1))
+        for metrics in aggregate.values()
+        if isinstance(metric := metrics.get("top1"), dict)
+    }
+    fold_count = next(iter(fold_counts)) if len(fold_counts) == 1 else 1
+    fold_note = (
+        f" Fold metrics are averaged within each seed across {fold_count} folds first."
+        if fold_count > 1
+        else ""
+    )
     if counts == {1}:
-        return "Only one seed was run per model; seed-to-seed uncertainty is not estimated."
+        return "Only one seed was run per model; seed-to-seed uncertainty is not estimated." + fold_note
     if len(counts) == 1:
-        return f"Error bars show sample standard deviation across {next(iter(counts))} seeds."
-    return "Seed counts vary by model; error bars show sample standard deviation where estimable."
+        return f"Error bars show sample standard deviation across {next(iter(counts))} seeds." + fold_note
+    return "Seed counts vary by model; error bars show sample standard deviation where estimable." + fold_note
 
 
 def _markdown_table(
-    aggregate: dict[str, Any], *, score_split: str = "test"
+    aggregate: dict[str, Any], *, score_split: str = "test", protocol: dict[str, Any] | None = None
 ) -> tuple[str, list[dict[str, Any]]]:
     columns = list(TABLE_COLUMNS)
     columns[0] = (f"{score_split.title()} top-1 (%)", "top1", "percent")
     columns[1] = (f"{score_split.title()} top-5 (%)", "top5", "percent")
-    headers = ["Model", "Seeds", *(column[0] for column in columns)]
+    protocol = protocol or {}
+    headers = ["Model", "CV design", *(column[0] for column in columns)]
     lines = ["| " + " | ".join(headers) + " |", "|" + "|".join("---" for _ in headers) + "|"]
     csv_rows: list[dict[str, Any]] = []
     for model_name, metrics in sorted(aggregate.items()):
         top1 = metrics.get("top1", {})
         seed_count = int(top1.get("n", 0))
-        row = {"Model": _label(model_name), "Seeds": seed_count}
+        fold_count = int(protocol.get("folds", top1.get("folds", 1)))
+        cv_design = f"{fold_count} folds × {seed_count} seeds" if fold_count > 1 else f"{seed_count} seeds"
+        row = {"Model": _label(model_name), "CV design": cv_design}
         values = []
         for title, key, conversion in columns:
             digits = 3 if conversion == "gflops" else 2
             cell = _summary_cell(metrics.get(key), conversion, digits)
             row[title] = cell
             values.append(cell)
-        lines.append("| " + " | ".join([row["Model"], str(seed_count), *values]) + " |")
+        lines.append("| " + " | ".join([row["Model"], cv_design, *values]) + " |")
         csv_rows.append(row)
     return "\n".join(lines) + "\n", csv_rows
 
 
 def _write_tables(
-    output_dir: Path, aggregate: dict[str, Any], *, score_split: str = "test"
+    output_dir: Path,
+    aggregate: dict[str, Any],
+    *,
+    score_split: str = "test",
+    protocol: dict[str, Any] | None = None,
 ) -> None:
-    markdown, rows = _markdown_table(aggregate, score_split=score_split)
+    protocol = protocol or {}
+    markdown, rows = _markdown_table(aggregate, score_split=score_split, protocol=protocol)
     (output_dir / "comparison_table.md").write_text(markdown, encoding="utf-8")
     table_columns = list(TABLE_COLUMNS)
     table_columns[0] = (f"{score_split.title()} top-1 (%)", "top1", "percent")
     table_columns[1] = (f"{score_split.title()} top-5 (%)", "top5", "percent")
-    columns = ["Model", "Seeds", *(column[0] for column in table_columns)]
+    columns = ["Model", "CV design", *(column[0] for column in table_columns)]
     with (output_dir / "comparison_table.csv").open(
         "w", newline="", encoding="utf-8"
     ) as stream:
@@ -226,7 +245,15 @@ def _quality_figure(aggregate: dict[str, Any], *, score_split: str = "test"):
     if seed_counts == {1}:
         uncertainty_title = "single seed; no uncertainty estimate"
     elif len(seed_counts) == 1 and seed_counts:
+        fold_counts = {
+            int(metric.get("folds", 1))
+            for metrics in aggregate.values()
+            if isinstance(metric := metrics.get("top1"), dict)
+        }
+        fold_count = next(iter(fold_counts)) if len(fold_counts) == 1 else 1
         uncertainty_title = f"mean ± sample SD across {next(iter(seed_counts))} seeds"
+        if fold_count > 1:
+            uncertainty_title += f" (each averaged over {fold_count} folds)"
     else:
         uncertainty_title = "mean and sample SD across seeds"
     figure = px.bar(
@@ -263,6 +290,61 @@ def _quality_figure(aggregate: dict[str, Any], *, score_split: str = "test"):
         hovermode="y unified",
         margin={"l": 220, "r": 35, "t": 80, "b": 150},
         height=max(650, 48 * len(aggregate) + 220),
+    )
+    return figure
+
+
+def _fold_score_figure(report: dict[str, Any], *, score_split: str):
+    """Show individual fold-by-seed scores without treating folds as independent seeds."""
+    import plotly.express as px
+
+    rows = []
+    score_key = "validation" if score_split == "validation" else "test"
+    for run in report.get("runs", []):
+        folds = int(run.get("folds", 1))
+        if folds <= 1:
+            continue
+        metrics = run.get(score_key) or {}
+        score = metrics.get("top1")
+        if score is None and score_split == "validation":
+            score = run.get("best_validation_top1")
+        if score is None:
+            continue
+        rows.append(
+            {
+                "model": _label(str(run["model"])),
+                "top1_percent": float(score) * 100.0,
+                "fold": f"Fold {int(run.get('fold_index', 1))}",
+                "seed": int(run["seed"]),
+                "fold_index": int(run.get("fold_index", 1)),
+            }
+        )
+    if not rows:
+        return None
+    figure = px.strip(
+        _columnar(rows),
+        x="top1_percent",
+        y="model",
+        color="fold",
+        stripmode="overlay",
+        jitter=0.35,
+        hover_data={"seed": True, "fold_index": True, "top1_percent": ":.2f"},
+        labels={
+            "top1_percent": f"{score_split.title()} top-1 accuracy (%)",
+            "model": "Model",
+            "fold": "Fold",
+            "seed": "Seed",
+            "fold_index": "Fold index",
+        },
+        title=f"Per-fold {score_split} scores across seeds",
+        template="plotly_white",
+        category_orders={"model": sorted({row["model"] for row in rows})},
+    )
+    figure.update_layout(
+        height=max(650, 34 * len({row["model"] for row in rows}) + 220),
+        width=1200,
+        margin={"l": 210, "r": 35, "t": 85, "b": 90},
+        legend_title_text="Cross-validation fold",
     )
     return figure
 
@@ -510,6 +592,15 @@ def _write_plotly_files(
 
     figure_paths: dict[str, str] = {}
     figures = {"quality_metrics": quality_figure, **efficiency_figures}
+    if int(report.get("protocol", {}).get("folds", 1)) > 1:
+        fold_score_figure = _fold_score_figure(
+            report,
+            score_split="validation"
+            if report.get("protocol", {}).get("validation_only", False)
+            else "test",
+        )
+        if fold_score_figure is not None:
+            figures["fold_scores"] = fold_score_figure
     report_aggregate = report.get("aggregate_mean_and_sample_std") or report.get(
         "validation_aggregate_mean_and_sample_std", {}
     )
@@ -533,12 +624,19 @@ def _write_plotly_files(
         else "The official test data were excluded from training and validation but were inspected in earlier "
         "project runs; this is not a pristine confirmatory holdout."
     )
+    cv_chart_note = (
+        "Fold-score charts show each fold/seed run; error bars in aggregate charts use seed-level summaries. Folds are not counted as extra independent seeds.\n\n"
+        if int(protocol.get("folds", 1)) > 1
+        else ""
+    )
     notes = (
         "Charts use Plotly Express. Hover a point or bar for its values and seed count; the "
         "legend can hide or show model/metric series. Points have no printed labels, keeping "
         f"close results readable. {_uncertainty_notice(report_aggregate)}\n\n"
         f"{split_notice}\n\n"
         "Each figure is available as an interactive HTML file and as a high-resolution PNG.\n\n"
+        f"Validation design: {protocol.get('folds', 1)} folds; {protocol.get('validation_aggregation', 'historical per-seed aggregation')}\n\n"
+        f"{cv_chart_note}"
         f"Evaluation split: {protocol.get('test', 'not specified')}\n\n"
         "Precision, recall, F1, and AUC are macro-averaged by class; AUC is macro one-vs-rest. "
         "FLOPs are a documented analytical estimate. Checkpoint size is decimal MB. Batch-1 "
@@ -601,7 +699,7 @@ def create_benchmark_report(input_path: str, output_dir: str) -> dict[str, str]:
     output.mkdir(parents=True, exist_ok=True)
     validation_only = bool(report.get("protocol", {}).get("validation_only", False))
     score_split = "validation" if validation_only else "test"
-    _write_tables(output, aggregate, score_split=score_split)
+    _write_tables(output, aggregate, score_split=score_split, protocol=report.get("protocol", {}))
     batch_size = int(report.get("protocol", {}).get("batch_size", 16))
     quality_figure = _quality_figure(aggregate, score_split=score_split)
     efficiency_figures = _efficiency_figures(aggregate, batch_size)
@@ -836,11 +934,13 @@ def create_training_curve_report(
     for study, root in studies:
         if not root.is_dir():
             raise FileNotFoundError(f"Run directory does not exist: {root}")
-        for progress_path in root.glob("*/seed-*/progress.json"):
+        for progress_path in root.rglob("progress.json"):
             try:
                 payload = json.loads(progress_path.read_text(encoding="utf-8"))
                 model = str(payload["model"])
                 seed = int(payload["seed"])
+                fold_index = int(payload.get("fold_index", 1))
+                folds = int(payload.get("folds", 1))
                 history = payload["epochs"]
             except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError):
                 continue
@@ -850,6 +950,8 @@ def create_training_curve_report(
                         "study": study,
                         "model": _label(model),
                         "seed": seed,
+                        "fold_index": fold_index,
+                        "folds": folds,
                         "epoch": int(row["epoch"]),
                         "val_top1_percent": float(row["val_top1"]) * 100,
                         "train_loss": float(row["train_loss"]),
@@ -858,13 +960,23 @@ def create_training_curve_report(
     if not records:
         raise ValueError("No complete progress.json histories were found in the two run folders.")
 
-    grouped: dict[tuple[str, str, int], list[dict[str, Any]]] = {}
+    per_seed_fold: dict[tuple[str, str, int, int], list[dict[str, Any]]] = {}
     for record in records:
-        key = (record["study"], record["model"], record["epoch"])
-        grouped.setdefault(key, []).append(record)
+        key = (record["study"], record["model"], record["seed"], record["epoch"])
+        per_seed_fold.setdefault(key, []).append(record)
+    per_seed: dict[tuple[str, str, int], list[dict[str, Any]]] = {}
+    for (study, model, seed, epoch), fold_rows in per_seed_fold.items():
+        per_seed.setdefault((study, model, epoch), []).append(
+            {
+                "seed": seed,
+                "val_top1": statistics.mean(row["val_top1_percent"] for row in fold_rows),
+                "train_loss": statistics.mean(row["train_loss"] for row in fold_rows),
+                "folds": len(fold_rows),
+            }
+        )
     aggregate_rows = []
-    for (study, model, epoch), rows in grouped.items():
-        top1s = [row["val_top1_percent"] for row in rows]
+    for (study, model, epoch), rows in per_seed.items():
+        top1s = [row["val_top1"] for row in rows]
         losses = [row["train_loss"] for row in rows]
         aggregate_rows.append(
             {
@@ -876,6 +988,7 @@ def create_training_curve_report(
                 "train_loss_mean": statistics.mean(losses),
                 "train_loss_sample_sd": statistics.stdev(losses) if len(losses) > 1 else 0.0,
                 "seeds": len(rows),
+                "folds_per_seed": max(row["folds"] for row in rows),
             }
         )
 

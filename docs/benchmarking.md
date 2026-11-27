@@ -8,9 +8,26 @@ The pilot checkpoint predates `spectral_mixer_mode` in its config. The loader ke
 
 ## Controlled CIFAR-100 Comparison
 
-Run the `nesy-cvt benchmark` command. It uses a fixed stratified split of the 50,000 official training images: 45,000 for training and 5,000 for validation, with 50 validation images from each of the 100 classes. The split is held constant across model runs. Each seed controls initialization, augmentation randomness, and training order.
+The historical runs in this repository used a fixed stratified 45,000/5,000 holdout. For the new paper study, use stratified **5-fold cross-validation** over all 50,000 official training images. Each fold trains on about 40,000 images and validates on 10,000 (100 per class). Fold assignments are deterministic (seed 1729) and shared across every model and training seed. The benchmark command now defaults to `--folds 5`; pass `--folds 1` only to reproduce the historical holdout behavior.
 
-The trained comparison checkpoints share the same train/validation indices, evaluation transform, official 10,000-image CIFAR-100 test examples, and seed set. The test examples were not used for fitting or checkpoint selection. However, earlier NeSy-CVT pilot and smoke evaluations inspected this official test split, so it is no longer a blinded, untouched test set for this project. Results on it are useful for matched comparison but should not be presented as confirmatory evidence from a pristine holdout.
+The cross-validation run directory is organized as `model/fold-N/seed-N`. The official CIFAR-100 test split is not loaded during training when `--validation-only` is set. Once the training and model-selection plan is locked, `benchmark-eval` can score all fold checkpoints on the same official 10,000 test images. Report validation CV results as primary; test results are secondary and exploratory because this project inspected the test split in earlier runs. Quality and timing metrics are averaged within each seed across folds; training time is summed and peak memory is maximized within each seed. The report then gives mean and sample standard deviation across seeds, with every fold still listed in JSON and CSV.
+
+For a short, test-free five-fold pipeline check:
+
+```powershell
+.\.venv-win\Scripts\python.exe -m nesy_cvt benchmark `
+  --device cuda --epochs 1 --batch-size 16 --seeds 42 --folds 5 `
+  --models nesy_cvt_tiny `
+  --validation-only `
+  --runs-dir runs/cifar100-cv-preflight `
+  --report results/cifar100-cv-preflight.json
+```
+
+This check fits five one-epoch models. It checks the CV pipeline and is not a performance result.
+
+The earlier fixed-holdout comparisons are retained as historical exploratory results; do not mix their holdout metrics with the new five-fold CV estimates as if they were one experiment.
+
+Within a given historical holdout run, checkpoints shared the same train/validation indices, evaluation transform, official 10,000-image CIFAR-100 test examples, and seed set. In the new cross-validation study, each fold is a separate train/validation partition shared across all models and seeds, and every fold checkpoint can be scored on the same official test examples after selection. Earlier NeSy-CVT pilot and smoke evaluations inspected this official test split, so it is no longer a blinded, untouched test set for this project. Results on it are useful for matched comparison but should not be presented as confirmatory evidence from a pristine holdout.
 
 Every model uses 32x32 inputs, CIFAR-10 AutoAugment policy, `ToTensor`, batch size 16, AdamW with learning rate 0.0003, gradient clipping at 1.0, and 50 epochs. The best checkpoint is selected by validation top-1. The official 10,000-image test split is evaluated after training. Do not use test metrics to select hyperparameters.
 
@@ -29,11 +46,11 @@ The original `nesy_cvt` remains the latent-concept baseline. `nesy_cvt_coarse_co
 
 ### Short validation-only check
 
-Use this first for the taxonomy-reasoning Tiny variant. It trains one seed and skips construction and evaluation of the official test split:
+Use this first for the taxonomy-reasoning Tiny variant. It trains one seed over all five folds and skips construction and evaluation of the official test split:
 
 ```powershell
 .\.venv-win\Scripts\python.exe -m nesy_cvt benchmark `
-  --device cuda --epochs 1 --batch-size 16 --seeds 42 `
+  --device cuda --epochs 1 --batch-size 16 --seeds 42 --folds 5 `
   --models nesy_cvt_tiny `
   --validation-only `
   --runs-dir runs/cifar100-v02-validation `
@@ -42,11 +59,11 @@ Use this first for the taxonomy-reasoning Tiny variant. It trains one seed and s
 
 This is a pipeline/learning check, not a publishable benchmark. It writes the validation-selected checkpoint, validation metrics, and a report that explicitly records `validation_only: true`. Use validation-only runs to compare the taxonomy family, legacy variants, and baselines during development. Do not select the release checkpoint using test metrics.
 
-Run three seeds (42, 43, 44) and report mean and sample standard deviation. For the architecture ablation, run the same settings with `nesy_cvt_no_fft`, `nesy_cvt_no_transformer`, `nesy_cvt_no_concept_auxiliary`, and `nesy_cvt_linear_classifier`.
+Run at least three seeds (42, 43, 44) with five folds and report the average across folds within each seed, then mean and sample standard deviation across seeds. For the architecture ablation, run the same settings with `nesy_cvt_no_fft`, `nesy_cvt_no_transformer`, `nesy_cvt_no_concept_auxiliary`, and `nesy_cvt_linear_classifier`.
 
 ```powershell
 .\.venv-win\Scripts\python.exe -m nesy_cvt benchmark `
-  --device cuda --download --epochs 50 --batch-size 16 `
+  --device cuda --download --epochs 50 --batch-size 16 --folds 5 `
   --seeds 42 43 44 `
   --models nesy_cvt_tiny resnet18_cifar mobilenet_v3_small densenet121_cifar `
     convnext_tiny_cifar swin_t_cifar vit_tiny_patch4 `
@@ -57,13 +74,13 @@ Run three seeds (42, 43, 44) and report mean and sample standard deviation. For 
 
 Each completed run records the validation-selected epoch, training configuration, seed, and software/hardware metadata. A test-evaluating run records test metrics and performance measurements; `--validation-only` skips the official test split and records validation metrics only. The current saved-checkpoint `benchmark-eval` report adds macro precision/recall/F1, macro one-vs-rest AUC, estimated FLOPs, checkpoint size, batch-1 latency, batched FPS, training peak allocated GPU memory (when the original run metadata contains it), inference peak allocated memory, training time, and the shared test-data fingerprint. Historical runs do not contain training-peak-memory metadata. FLOPs are analytical estimates under the documented convention below, not estimates inferred from parameter count.
 
-`--taxonomy-rule-weight` and `--taxonomy-consistency-weight` expose the rule-fusion and hierarchy-loss strengths. Their defaults (0.5 and 0.1) are starting values, not validated optima. Tune them only on the fixed validation split; set either to `0` for its ablation. Record every tried configuration and do not select by the previously inspected CIFAR-100 test split.
+`--taxonomy-rule-weight` and `--taxonomy-consistency-weight` expose the rule-fusion and hierarchy-loss strengths. Their defaults (0.5 and 0.1) are starting values, not validated optima. Tune them only using the training and validation folds; set either to `0` for its ablation. Record every tried configuration and do not select by the previously inspected CIFAR-100 test split.
 
 An equivalent invocation for ablations should use a separate output path:
 
 ```powershell
 .\.venv-win\Scripts\python.exe -m nesy_cvt benchmark `
-  --device cuda --epochs 50 --batch-size 16 --seeds 42 43 44 `
+  --device cuda --epochs 50 --batch-size 16 --seeds 42 43 44 --folds 5 `
   --models nesy_cvt nesy_cvt_no_fft nesy_cvt_no_transformer `
     nesy_cvt_no_concept_auxiliary nesy_cvt_linear_classifier `
   --validation-only `
@@ -71,7 +88,7 @@ An equivalent invocation for ablations should use a separate output path:
   --report results/cifar100-ablations.json
 ```
 
-Each run uses one GPU and one fixed recipe. The comparison is controlled under that recipe; it is not a claim that the recipe is optimal for every model. The `benchmark` command writes the best validation checkpoint and progress after each epoch. With `--resume`, it reuses completed model/seed runs whose recorded settings and GPU match, and preserves the checkpoint/progress files of an interrupted seed before restarting that seed from epoch 1. It does not restore optimizer state or continue from the interrupted epoch. Start with one seed and one epoch to check runtime and memory before requesting the full roster; ConvNeXt-Tiny, Swin-Tiny, and Huge are more demanding.
+Each run uses one GPU and one fixed recipe. The comparison is controlled under that recipe; it is not a claim that the recipe is optimal for every model. The `benchmark` command writes the best validation checkpoint and progress after each epoch. With `--resume`, it reuses completed model/fold/seed runs whose recorded settings and GPU match, and preserves the checkpoint/progress files of an interrupted fold before restarting that fold from epoch 1. It does not restore optimizer state or continue from the interrupted epoch. Start with one seed, one epoch, and five folds to check runtime and memory before requesting the full roster; ConvNeXt-Tiny, Swin-Tiny, and Huge are more demanding.
 
 No finite experiment can establish that a model is “top of all CNN and Transformer models.” Define a bounded roster and matched training-data/compute rules. The current runner compares a small set of references, not every published architecture. A CIFAR-100 result also cannot support rankings on other datasets or input resolutions.
 
@@ -87,7 +104,7 @@ Use `resume_comparison` with the same settings and output paths after an interru
   --report results/cifar100-comparison.json
 ```
 
-The recovery launcher validates and keeps complete model/seed records, then restarts each incomplete model/seed from epoch 1 because its optimizer state was not saved. It writes the combined report and CSV only after every requested run has completed.
+The older recovery launcher is for the historical single-holdout layout. For the new cross-validation layout, rerun the same `benchmark` command with `--resume`; it reuses completed model/fold/seed records and restarts incomplete folds from epoch 1 because optimizer state is not saved.
 
 ## Metrics
 
@@ -114,7 +131,7 @@ This does not train the models again. It checks that the chosen run directory co
   --output-dir results/cifar100-detailed-report
 ```
 
-The output folder contains detailed Markdown and CSV tables, a self-contained interactive Plotly Express dashboard, individual interactive HTML figures, and high-resolution PNG versions of every figure. The PNG exporter uses Kaleido and a local Chrome/Chromium installation. Hover for exact values in HTML and use the legend to show or hide models and metrics. No labels are placed on top of nearby points. Missing metrics remain `N/A`; FLOPs are explicitly labeled analytical estimates.
+The output folder contains detailed Markdown and CSV tables, a self-contained interactive Plotly Express dashboard, individual interactive HTML figures, and high-resolution PNG versions of every figure. Five-fold reports also include `fold_scores.html` and `fold_scores.png`, showing each fold/seed observation. The PNG exporter uses Kaleido and a local Chrome/Chromium installation. Hover for exact values in HTML and use the legend to show or hide models and metrics. No labels are placed on top of nearby points. Missing metrics remain `N/A`; FLOPs are explicitly labeled analytical estimates.
 
 The existing `runs/cifar100-final-benchmark` roster contains NeSy-CVT, its coarse-concept variant, ResNet-18, MobileNetV3-Small, and ViT-Tiny/4, with seeds 42, 43, and 44. The separate `runs/cifar100-taxonomy-family` directory contains validation-only checkpoints for more variants. They can also be rescored with the same command by changing `--runs-dir` and `--report`, but those results should be labeled exploratory because the CIFAR-100 test split has already been inspected in earlier project runs.
 

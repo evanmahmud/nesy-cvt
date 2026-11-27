@@ -120,6 +120,39 @@ def _stratified_indices(targets: list[int], *, val_per_class: int, seed: int):
     return train_indices, sorted(val_indices)
 
 
+def _stratified_fold_indices(
+    targets: list[int], *, folds: int, fold_index: int, seed: int
+) -> tuple[list[int], list[int]]:
+    """Return one deterministic stratified fold and its complementary train indices."""
+    import torch
+
+    if folds < 2:
+        raise ValueError("Cross-validation requires at least two folds")
+    if not 0 <= fold_index < folds:
+        raise ValueError(f"fold_index must be in [0, {folds - 1}]")
+    indices_by_class: dict[int, list[int]] = defaultdict(list)
+    for index, target in enumerate(targets):
+        indices_by_class[int(target)].append(index)
+    if any(len(indices) < folds for indices in indices_by_class.values()):
+        raise ValueError("Each class must have at least `folds` examples")
+
+    rng = random.Random(seed)
+    train_indices: list[int] = []
+    val_indices: list[int] = []
+    for class_indices in indices_by_class.values():
+        rng.shuffle(class_indices)
+        quotient, remainder = divmod(len(class_indices), folds)
+        start = fold_index * quotient + min(fold_index, remainder)
+        stop = start + quotient + (1 if fold_index < remainder else 0)
+        val_indices.extend(class_indices[start:stop])
+        train_indices.extend(class_indices[:start])
+        train_indices.extend(class_indices[stop:])
+    generator = torch.Generator().manual_seed(seed)
+    order = torch.randperm(len(train_indices), generator=generator).tolist()
+    train_indices = [train_indices[index] for index in order]
+    return train_indices, sorted(val_indices)
+
+
 class _CoarseTargetDataset:
     """Add CIFAR-100 superclass labels to a torchvision fine-label dataset."""
 
@@ -150,6 +183,8 @@ def _build_loaders(
     val_per_class: int,
     split_seed: int,
     shuffle_seed: int,
+    folds: int = 1,
+    fold_index: int = 0,
     supervised_concepts: bool = False,
     validation_only: bool = False,
     data_recipe: str = "legacy_v1",
@@ -211,9 +246,17 @@ def _build_loaders(
         )
         if supervised_concepts:
             test_set = _CoarseTargetDataset(test_set, data_dir, train=False)
-    train_indices, val_indices = _stratified_indices(
-        train_clean.targets, val_per_class=val_per_class, seed=split_seed
-    )
+    if folds == 1:
+        train_indices, val_indices = _stratified_indices(
+            train_clean.targets, val_per_class=val_per_class, seed=split_seed
+        )
+    else:
+        train_indices, val_indices = _stratified_fold_indices(
+            train_clean.targets,
+            folds=folds,
+            fold_index=fold_index,
+            seed=split_seed,
+        )
     loader_generator = torch.Generator().manual_seed(shuffle_seed)
     train_loader = DataLoader(
         Subset(train_augmented, train_indices),
@@ -423,6 +466,8 @@ def _train_one(
     batch_size: int,
     learning_rate: float,
     val_per_class: int,
+    folds: int = 1,
+    fold_index: int = 0,
     warmup_batches: int,
     validation_only: bool = False,
     taxonomy_rule_weight: float = 0.5,
@@ -468,6 +513,8 @@ def _train_one(
         val_per_class=val_per_class,
         split_seed=1729,
         shuffle_seed=seed,
+        folds=folds,
+        fold_index=fold_index,
         supervised_concepts=config.concept_schema == "cifar100_coarse20",
         validation_only=validation_only,
         data_recipe=data_recipe,
@@ -603,6 +650,8 @@ def _train_one(
                 {
                     "model": model_name,
                     "seed": seed,
+                    "fold_index": fold_index + 1,
+                    "folds": folds,
                     "completed_epochs": epoch + 1,
                     "best_epoch_by_validation_top1": best_epoch,
                     "best_validation_top1": best_val_top1,
@@ -652,6 +701,8 @@ def _train_one(
     run_record: dict[str, Any] = {
         "model": model_name,
         "seed": seed,
+        "fold_index": fold_index + 1,
+        "folds": folds,
         "epochs_requested": epochs,
         "best_epoch_by_validation_top1": best_epoch,
         "best_validation_top1": best_val_top1,
@@ -687,7 +738,12 @@ def _train_one(
             "data_recipe": data_recipe,
             "epochs": epochs,
             "validation_split_seed": 1729,
-            "validation_images_per_class": val_per_class,
+            "validation_split_strategy": (
+                "fixed_stratified_holdout" if folds == 1 else "stratified_k_fold"
+            ),
+            "folds": folds,
+            "fold_index": fold_index + 1,
+            "validation_images_per_class": val_per_class if folds == 1 else None,
             "dataloader_workers": 0,
             "precision": "float32",
             "concept_supervision": (
@@ -717,6 +773,7 @@ def run_cifar100_comparison(
     batch_size: int = 16,
     learning_rate: float = 3e-4,
     val_per_class: int = 50,
+    folds: int = 5,
     warmup_batches: int = 10,
     validation_only: bool = False,
     taxonomy_rule_weight: float = 0.5,
@@ -736,8 +793,8 @@ def run_cifar100_comparison(
         raise ValueError(f"Unknown model(s): {', '.join(unknown)}")
     if not models or not seeds:
         raise ValueError("At least one model and one seed are required")
-    if epochs <= 0 or batch_size <= 0 or val_per_class <= 0:
-        raise ValueError("epochs, batch-size, and val-per-class must be positive")
+    if epochs <= 0 or batch_size <= 0 or val_per_class <= 0 or folds <= 0:
+        raise ValueError("epochs, batch-size, val-per-class, and folds must be positive")
     if (
         taxonomy_rule_weight < 0
         or taxonomy_consistency_weight < 0
@@ -763,101 +820,118 @@ def run_cifar100_comparison(
         else "ToTensor, Normalize(CIFAR100 stats)"
     )
     for model_name in models:
-        for seed in seeds:
-            run_dir = root / model_name / f"seed-{seed}"
-            if resume:
-                effective_rule_weight = (
-                    0.0 if model_name == "nesy_cvt_no_rule_fusion" else taxonomy_rule_weight
+        for fold_index in range(folds):
+            for seed in seeds:
+                run_dir = root / model_name
+                if folds > 1:
+                    run_dir = run_dir / f"fold-{fold_index + 1}"
+                run_dir = run_dir / f"seed-{seed}"
+                if resume:
+                    effective_rule_weight = (
+                        0.0 if model_name == "nesy_cvt_no_rule_fusion" else taxonomy_rule_weight
+                    )
+                    effective_consistency_weight = (
+                        0.0
+                        if model_name == "nesy_cvt_no_hierarchy_consistency"
+                        else taxonomy_consistency_weight
+                    )
+                    effective_concept_weight = (
+                        0.0
+                        if model_name == "nesy_cvt_no_coarse_supervision"
+                        else concept_loss_weight
+                    )
+                    expected_config = {
+                        "dataset": "CIFAR-100 fine labels",
+                        "input_size": 32,
+                        "train_transform": train_transform_description,
+                        "eval_transform": eval_transform_description,
+                        "batch_size": batch_size,
+                        "optimizer": optimizer_name.upper(),
+                        "optimizer_momentum": 0.9 if optimizer_name == "sgd" else None,
+                        "learning_rate": learning_rate,
+                        "weight_decay": weight_decay,
+                        "lr_schedule": lr_schedule,
+                        "grad_clip_norm": grad_clip,
+                        "data_recipe": data_recipe,
+                        "epochs": epochs,
+                        "validation_split_seed": 1729,
+                        "validation_split_strategy": (
+                            "fixed_stratified_holdout" if folds == 1 else "stratified_k_fold"
+                        ),
+                        "folds": folds,
+                        "fold_index": fold_index + 1,
+                        "validation_images_per_class": val_per_class if folds == 1 else None,
+                        "precision": "float32",
+                        "taxonomy_rule_weight": effective_rule_weight,
+                        "taxonomy_consistency_weight": effective_consistency_weight,
+                        "concept_loss_weight": effective_concept_weight,
+                        "test_evaluated": not validation_only,
+                    }
+                    reused = _completed_run_for_resume(
+                        run_dir,
+                        model_name=model_name,
+                        seed=seed,
+                        expected_config=expected_config,
+                        expected_hardware=device_label,
+                    )
+                    if reused is not None:
+                        print(
+                            f"Reusing completed run: {model_name}, fold {fold_index + 1}/{folds}, seed {seed}",
+                            flush=True,
+                        )
+                        records.append(reused)
+                        continue
+                    _preserve_interrupted_run(run_dir)
+                print(
+                    f"Starting {model_name}, fold {fold_index + 1}/{folds}, seed {seed} on {device_label}",
+                    flush=True,
                 )
-                effective_consistency_weight = (
-                    0.0
-                    if model_name == "nesy_cvt_no_hierarchy_consistency"
-                    else taxonomy_consistency_weight
+                record = _train_one(
+                    model_name,
+                    seed,
+                    data_dir=data_dir,
+                    download=download,
+                    output_dir=run_dir,
+                    device=device,
+                    epochs=epochs,
+                    batch_size=batch_size,
+                    learning_rate=learning_rate,
+                    val_per_class=val_per_class,
+                    folds=folds,
+                    fold_index=fold_index,
+                    warmup_batches=warmup_batches,
+                    validation_only=validation_only,
+                    taxonomy_rule_weight=taxonomy_rule_weight,
+                    taxonomy_consistency_weight=taxonomy_consistency_weight,
+                    concept_loss_weight=concept_loss_weight,
+                    data_recipe=data_recipe,
+                    optimizer_name=optimizer_name,
+                    weight_decay=weight_decay,
+                    lr_schedule=lr_schedule,
+                    grad_clip=grad_clip,
                 )
-                effective_concept_weight = (
-                    0.0
-                    if model_name == "nesy_cvt_no_coarse_supervision"
-                    else concept_loss_weight
+                record["hardware"] = device_label
+                record["python"] = platform.python_version()
+                record["pytorch"] = torch.__version__
+                record["torchvision"] = __import__("torchvision").__version__
+                record["cuda_runtime"] = torch.version.cuda
+                record["platform"] = platform.platform()
+                record["cudnn_deterministic"] = (
+                    torch.backends.cudnn.deterministic if hasattr(torch.backends, "cudnn") else None
                 )
-                expected_config = {
-                    "dataset": "CIFAR-100 fine labels",
-                    "input_size": 32,
-                    "train_transform": train_transform_description,
-                    "eval_transform": eval_transform_description,
-                    "batch_size": batch_size,
-                    "optimizer": optimizer_name.upper(),
-                    "optimizer_momentum": 0.9 if optimizer_name == "sgd" else None,
-                    "learning_rate": learning_rate,
-                    "weight_decay": weight_decay,
-                    "lr_schedule": lr_schedule,
-                    "grad_clip_norm": grad_clip,
-                    "data_recipe": data_recipe,
-                    "epochs": epochs,
-                    "validation_split_seed": 1729,
-                    "validation_images_per_class": val_per_class,
-                    "precision": "float32",
-                    "taxonomy_rule_weight": effective_rule_weight,
-                    "taxonomy_consistency_weight": effective_consistency_weight,
-                    "concept_loss_weight": effective_concept_weight,
-                    "test_evaluated": not validation_only,
-                }
-                reused = _completed_run_for_resume(
-                    run_dir,
-                    model_name=model_name,
+                record["run_dir"] = str(run_dir)
+                save_metrics_json(
+                    run_dir / "metrics.json",
+                    {key: value for key, value in record.items() if key != "epochs"},
                     seed=seed,
-                    expected_config=expected_config,
-                    expected_hardware=device_label,
+                    hardware=device_label,
+                    extra={"epochs": record["epochs"]},
                 )
-                if reused is not None:
-                    print(f"Reusing completed run: {model_name}, seed {seed}", flush=True)
-                    records.append(reused)
-                    continue
-                _preserve_interrupted_run(run_dir)
-            print(f"Starting {model_name}, seed {seed} on {device_label}", flush=True)
-            record = _train_one(
-                model_name,
-                seed,
-                data_dir=data_dir,
-                download=download,
-                output_dir=run_dir,
-                device=device,
-                epochs=epochs,
-                batch_size=batch_size,
-                learning_rate=learning_rate,
-                val_per_class=val_per_class,
-                warmup_batches=warmup_batches,
-                validation_only=validation_only,
-                taxonomy_rule_weight=taxonomy_rule_weight,
-                taxonomy_consistency_weight=taxonomy_consistency_weight,
-                concept_loss_weight=concept_loss_weight,
-                data_recipe=data_recipe,
-                optimizer_name=optimizer_name,
-                weight_decay=weight_decay,
-                lr_schedule=lr_schedule,
-                grad_clip=grad_clip,
-            )
-            record["hardware"] = device_label
-            record["python"] = platform.python_version()
-            record["pytorch"] = torch.__version__
-            record["torchvision"] = __import__("torchvision").__version__
-            record["cuda_runtime"] = torch.version.cuda
-            record["platform"] = platform.platform()
-            record["cudnn_deterministic"] = (
-                torch.backends.cudnn.deterministic if hasattr(torch.backends, "cudnn") else None
-            )
-            record["run_dir"] = str(run_dir)
-            save_metrics_json(
-                run_dir / "metrics.json",
-                {key: value for key, value in record.items() if key != "epochs"},
-                seed=seed,
-                hardware=device_label,
-                extra={"epochs": record["epochs"]},
-            )
-            records.append(record)
-            del record
-            gc.collect()
-            if device.type == "cuda":
-                torch.cuda.empty_cache()
+                records.append(record)
+                del record
+                gc.collect()
+                if device.type == "cuda":
+                    torch.cuda.empty_cache()
 
     aggregate_metrics = (
         "top1",
@@ -894,6 +968,7 @@ def run_cifar100_comparison(
         model_records = [record for record in records if record["model"] == model_name]
         aggregate[model_name] = {}
         for metric in report_metrics:
+            fold_values_by_seed: dict[int, list[float]] = defaultdict(list)
             values = [
                 float(record["validation"][metric])
                 if validation_only and record.get("validation") is not None and metric in record["validation"]
@@ -905,19 +980,54 @@ def run_cifar100_comparison(
                 or (record.get("test") is not None and metric in record["test"])
                 or (metric in record and record[metric] is not None)
             ]
-            if not values:
+            for record in model_records:
+                if (
+                    validation_only
+                    and record.get("validation") is not None
+                    and metric in record["validation"]
+                ):
+                    value = record["validation"][metric]
+                elif record.get("test") is not None and metric in record["test"]:
+                    value = record["test"][metric]
+                else:
+                    value = record.get(metric)
+                if value is not None:
+                    fold_values_by_seed[int(record["seed"])].append(float(value))
+            if not fold_values_by_seed:
                 continue
+            seed_values = []
+            for fold_values in fold_values_by_seed.values():
+                if metric == "training_seconds_including_validation":
+                    seed_values.append(sum(fold_values))
+                elif metric in {"train_peak_gpu_memory_mb", "peak_gpu_memory_mb"}:
+                    seed_values.append(max(fold_values))
+                else:
+                    seed_values.append(statistics.mean(fold_values))
             aggregate[model_name][metric] = {
-                "mean": statistics.mean(values) if values else float("nan"),
-                "sample_std": statistics.stdev(values) if len(values) > 1 else None,
-                "n": len(values),
+                "mean": statistics.mean(seed_values),
+                "sample_std": statistics.stdev(seed_values) if len(seed_values) > 1 else None,
+                "n": len(seed_values),
+                "fold_observations": len(values),
+                "fold_sample_std": statistics.stdev(values) if len(values) > 1 else None,
+                "folds": folds,
             }
 
     report: dict[str, Any] = {
         "benchmark_name": "CIFAR-100 controlled comparison",
         "protocol": {
             "dataset": "CIFAR-100 fine labels",
-            "train_validation": "stratified 45,000/5,000 split from official 50,000 training images",
+            "train_validation": (
+                "legacy fixed stratified 45,000/5,000 holdout from official 50,000 training images"
+                if folds == 1
+                else f"stratified {folds}-fold cross-validation over all 50,000 official training images; each fold trains on approximately {(folds - 1) / folds:.0%} and validates on {1 / folds:.0%}"
+            ),
+            "validation_split_strategy": (
+                "fixed_stratified_holdout" if folds == 1 else "stratified_k_fold"
+            ),
+            "folds": folds,
+            "validation_split_seed": 1729,
+            "fold_assignment": "identical deterministic fine-label stratified folds for every model and seed",
+            "validation_aggregation": "average quality and timing metrics within each seed across folds; sum training time and take peak memory within each seed across folds; then report mean and sample SD across seeds. Fold-level rows remain in runs and CSV.",
             "test": (
                 "not evaluated; validation-only mode"
                 if validation_only
@@ -984,6 +1094,8 @@ def run_cifar100_comparison(
             fieldnames=[
                 "model",
                 "seed",
+                "fold_index",
+                "folds",
                 "best_epoch_by_validation_top1",
                 "best_validation_top1",
                 "best_validation_top5",
@@ -998,6 +1110,8 @@ def run_cifar100_comparison(
             row = {
                 "model": record["model"],
                 "seed": record["seed"],
+                "fold_index": record.get("fold_index", 1),
+                "folds": record.get("folds", 1),
                 "best_epoch_by_validation_top1": record["best_epoch_by_validation_top1"],
                 "best_validation_top1": record.get("best_validation_top1"),
                 "best_validation_top5": record.get("best_validation_top5"),
