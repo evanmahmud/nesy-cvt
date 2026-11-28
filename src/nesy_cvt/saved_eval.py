@@ -222,6 +222,7 @@ def evaluate_saved_checkpoints(
 
     seeds_by_model: dict[str, set[int]] = {}
     folds_by_model_seed: dict[str, dict[int, set[int]]] = {}
+    split_hashes_by_fold: dict[int, dict[str, str]] = {}
     loss_weights_by_model: dict[str, dict[str, float]] = {}
     weight_keys = (
         "taxonomy_rule_weight",
@@ -234,6 +235,34 @@ def evaluate_saved_checkpoints(
         folds_by_model_seed.setdefault(manifest["model"], {}).setdefault(
             manifest["seed"], set()
         ).add(manifest["fold_index"])
+        if int(protocol["folds"]) > 1:
+            config = manifest["config"]
+            train_hash = str(config.get("training_indices_sha256", ""))
+            validation_hash = str(config.get("validation_indices_sha256", ""))
+            audit = manifest["metrics"].get("data_split_audit") or {}
+            if not train_hash or not validation_hash:
+                raise ValueError(
+                    f"Cross-validation split hashes are missing from {manifest['run_dir']}"
+                )
+            if int(audit.get("train_validation_overlap_count", -1)) != 0:
+                raise ValueError(
+                    f"Train/validation overlap audit failed for {manifest['run_dir']}"
+                )
+            if audit.get("fold_partition_audit_passed") is not True:
+                raise ValueError(
+                    f"Fold partition audit is missing or failed for {manifest['run_dir']}"
+                )
+            signature = {
+                "training_indices_sha256": train_hash,
+                "validation_indices_sha256": validation_hash,
+            }
+            old_signature = split_hashes_by_fold.setdefault(
+                manifest["fold_index"], signature
+            )
+            if old_signature != signature:
+                raise ValueError(
+                    f"Models/seeds use different data indices in fold {manifest['fold_index']}"
+                )
         model_name = manifest["model"]
         weight_signature = tuple(
             float(manifest["config"].get(key, 0.0)) for key in weight_keys
@@ -254,6 +283,13 @@ def evaluate_saved_checkpoints(
             "Every model and seed must have exactly one checkpoint per fold; incomplete: "
             + ", ".join(incomplete_grids)
         )
+    if int(protocol["folds"]) > 1:
+        if set(split_hashes_by_fold) != expected_folds:
+            raise ValueError("Split-index audit is missing one or more requested folds")
+        if len(
+            {item["validation_indices_sha256"] for item in split_hashes_by_fold.values()}
+        ) != len(expected_folds):
+            raise ValueError("Different folds unexpectedly use identical validation indices")
     inconsistent_weights = [
         model_name
         for model_name, signatures in model_weight_signatures.items()
@@ -418,6 +454,23 @@ def evaluate_saved_checkpoints(
                 "includes loading the test batches"
             ),
             "common_training_protocol": protocol,
+            "split_index_sha256_by_fold": split_hashes_by_fold,
+            "data_leakage_audit": {
+                "train_validation_overlap_count_per_fit": 0,
+                "train_and_validation_cover_training_set_per_fit": True,
+                "each_training_example_is_validation_once_across_folds": True,
+                "same_index_hashes_across_models_and_seeds_per_fold": True,
+                "fold_partition_audit_passed_for_every_fit": True,
+                "official_test_dataset_loaded_for_post_training_evaluation": True,
+                "official_test_used_for_training_or_checkpoint_selection": False,
+                "official_test_used_for_gradient_updates_or_checkpoint_selection": False,
+                "official_test_had_prior_project_exposure": True,
+                "interpretation": (
+                    "Checkpoint metadata confirms disjoint training/validation indices within each fold "
+                    "and shared fold indices across models/seeds. The official test set had prior project "
+                    "exposure, so its results are exploratory rather than pristine confirmation."
+                ),
+            },
             "component_loss_weights_by_model": loss_weights_by_model,
             "selection_rule": "each fold checkpoint selected by that fold's validation top-1 before test evaluation",
             "comparison_scope": (

@@ -25,6 +25,43 @@ For a short, test-free five-fold pipeline check:
 
 This check fits five one-epoch models. It checks the CV pipeline and is not a performance result.
 
+### Two-epoch timing and GPU telemetry pilot
+
+For an all-model runtime pilot, use this PowerShell command. It makes 330 fits
+(22 models × 3 seeds × 5 folds) and 660 total training epochs. This measures runtime and
+memory behavior; two epochs are too few for a meaningful performance ranking. The runner
+writes `epoch_timing.csv` (one row per model/fold/seed/epoch, including UTC bounds, train
+and validation seconds, CUDA device index/count, and PyTorch peak allocated/reserved VRAM)
+and `timing_summary.csv` (per model/seed, per model, and overall fit totals). The JSON report
+also records the full command wall time through aggregation. These PyTorch memory fields are
+not GPU utilization percentages; use `nvidia-smi` sampling alongside the run for those.
+
+Every fold audit checks zero train/validation index overlap, complete coverage of the 50,000
+training examples by train plus validation, and that validation folds partition the training
+set exactly once. SHA-256 hashes verify that each model and seed uses identical indices in
+the corresponding fold. This rules out direct index overlap in this pipeline. It does not
+erase prior CIFAR-100 test-set exposure or selection bias from comparing many models on the
+same cross-validation results; use an independent dataset or a prespecified nested design for
+confirmatory claims.
+
+```powershell
+.\.venv-win\Scripts\python.exe -m nesy_cvt benchmark `
+  --device cuda --download --epochs 2 --batch-size 16 --folds 5 `
+  --seeds 42 43 44 `
+  --models nesy_cvt nesy_cvt_tiny nesy_cvt_small nesy_cvt_base `
+    nesy_cvt_large nesy_cvt_nano nesy_cvt_huge nesy_cvt_coarse_concepts `
+    nesy_cvt_no_fft nesy_cvt_no_transformer nesy_cvt_no_concept_auxiliary `
+    nesy_cvt_linear_classifier nesy_cvt_no_rule_fusion `
+    nesy_cvt_no_hierarchy_consistency nesy_cvt_no_coarse_supervision `
+    resnet18_cifar mobilenet_v3_small densenet121_cifar convnext_tiny_cifar `
+    swin_t_cifar vit_tiny_patch4 wide_resnet28x10_cifar `
+  --data-recipe cifar100_standard_v2 --optimizer sgd --learning-rate 0.1 `
+  --weight-decay 0.0005 --lr-schedule cosine --grad-clip 0 `
+  --validation-only --resume `
+  --runs-dir runs/cifar100-5fold-2epoch `
+  --report results/cifar100-5fold-2epoch-validation.json
+```
+
 The earlier fixed-holdout comparisons are retained as historical exploratory results; do not mix their holdout metrics with the new five-fold CV estimates as if they were one experiment.
 
 Within a given historical holdout run, checkpoints shared the same train/validation indices, evaluation transform, official 10,000-image CIFAR-100 test examples, and seed set. In the new cross-validation study, each fold is a separate train/validation partition shared across all models and seeds, and every fold checkpoint can be scored on the same official test examples after selection. Earlier NeSy-CVT pilot and smoke evaluations inspected this official test split, so it is no longer a blinded, untouched test set for this project. Results on it are useful for matched comparison but should not be presented as confirmatory evidence from a pristine holdout.

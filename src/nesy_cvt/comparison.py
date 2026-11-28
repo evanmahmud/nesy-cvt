@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import gc
+import hashlib
 import json
 import math
 import pickle
@@ -12,6 +13,7 @@ import statistics
 import time
 from collections import defaultdict
 from dataclasses import replace
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -137,20 +139,42 @@ def _stratified_fold_indices(
         raise ValueError("Each class must have at least `folds` examples")
 
     rng = random.Random(seed)
-    train_indices: list[int] = []
-    val_indices: list[int] = []
+    validation_folds: list[list[int]] = [[] for _ in range(folds)]
     for class_indices in indices_by_class.values():
         rng.shuffle(class_indices)
         quotient, remainder = divmod(len(class_indices), folds)
-        start = fold_index * quotient + min(fold_index, remainder)
-        stop = start + quotient + (1 if fold_index < remainder else 0)
-        val_indices.extend(class_indices[start:stop])
-        train_indices.extend(class_indices[:start])
-        train_indices.extend(class_indices[stop:])
+        offset = 0
+        for current_fold in range(folds):
+            fold_size = quotient + (1 if current_fold < remainder else 0)
+            validation_folds[current_fold].extend(
+                class_indices[offset : offset + fold_size]
+            )
+            offset += fold_size
+
+    # Audit the partition itself: every training example must appear in exactly
+    # one validation fold before any model is trained.
+    flattened_validation = [index for fold in validation_folds for index in fold]
+    if (
+        len(flattened_validation) != len(targets)
+        or len(set(flattened_validation)) != len(targets)
+        or set(flattened_validation) != set(range(len(targets)))
+    ):
+        raise RuntimeError("Stratified folds do not form a disjoint partition of training data")
+
+    val_indices = sorted(validation_folds[fold_index])
+    val_index_set = set(val_indices)
+    train_indices = [index for index in range(len(targets)) if index not in val_index_set]
+    if val_index_set.intersection(train_indices):
+        raise RuntimeError("Train/validation index overlap detected")
     generator = torch.Generator().manual_seed(seed)
     order = torch.randperm(len(train_indices), generator=generator).tolist()
     train_indices = [train_indices[index] for index in order]
     return train_indices, sorted(val_indices)
+
+
+def _indices_sha256(indices: list[int]) -> str:
+    canonical = json.dumps(sorted(int(index) for index in indices), separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("ascii")).hexdigest()
 
 
 class _CoarseTargetDataset:
@@ -276,7 +300,32 @@ def _build_loaders(
         if test_set is not None
         else None
     )
-    return train_loader, val_loader, test_loader, train_transform_description, eval_transform_description
+    train_index_set = set(train_indices)
+    val_index_set = set(val_indices)
+    overlap_count = len(train_index_set.intersection(val_index_set))
+    covered_count = len(train_index_set.union(val_index_set))
+    if overlap_count != 0 or covered_count != len(train_clean):
+        raise RuntimeError(
+            f"Invalid data split: overlap={overlap_count}, covered={covered_count}, "
+            f"dataset={len(train_clean)}"
+        )
+    split_audit = {
+        "train_images": len(train_indices),
+        "validation_images": len(val_indices),
+        "train_validation_overlap_count": overlap_count,
+        "training_indices_sha256": _indices_sha256(train_indices),
+        "validation_indices_sha256": _indices_sha256(val_indices),
+        "fold_partition_audit_passed": True if folds > 1 else None,
+        "official_test_dataset_loaded_for_post_training_evaluation": test_set is not None,
+    }
+    return (
+        train_loader,
+        val_loader,
+        test_loader,
+        train_transform_description,
+        eval_transform_description,
+        split_audit,
+    )
 
 
 def _measure_single_image_latency(
@@ -483,6 +532,7 @@ def _train_one(
     import torch.nn.functional as F
     from torch import nn
 
+    run_wall_start = time.perf_counter()
     _seed_everything(seed)
     output_dir.mkdir(parents=True, exist_ok=True)
     config = config_for_model(model_name, NesyCVTConfig())
@@ -506,7 +556,14 @@ def _train_one(
             taxonomy_consistency_weight=effective_taxonomy_consistency_weight,
             concept_loss_weight=effective_concept_loss_weight,
         )
-    train_loader, val_loader, test_loader, train_transform_description, eval_transform_description = _build_loaders(
+    (
+        train_loader,
+        val_loader,
+        test_loader,
+        train_transform_description,
+        eval_transform_description,
+        split_audit,
+    ) = _build_loaders(
         data_dir,
         download=download,
         batch_size=batch_size,
@@ -539,6 +596,19 @@ def _train_one(
     if device.type == "cuda":
         torch.cuda.reset_peak_memory_stats(device)
         torch.cuda.synchronize(device)
+        gpu_device_index = (
+            int(device.index) if device.index is not None else int(torch.cuda.current_device())
+        )
+        gpu_visible_device_count = int(torch.cuda.device_count())
+        gpu_name = torch.cuda.get_device_name(device)
+        gpu_total_memory_mb = (
+            torch.cuda.get_device_properties(device).total_memory / (1024**2)
+        )
+    else:
+        gpu_device_index = None
+        gpu_visible_device_count = 0
+        gpu_name = None
+        gpu_total_memory_mb = None
 
     best_val_top1 = -1.0
     best_val_top5 = 0.0
@@ -547,12 +617,16 @@ def _train_one(
     best_val_hierarchy_consistency_mae: float | None = None
     best_epoch = 0
     best_state: dict[str, torch.Tensor] | None = None
-    history: list[dict[str, float | int]] = []
+    history: list[dict[str, Any]] = []
     train_peak_mb = 0.0
     train_start = time.perf_counter()
     for epoch in range(epochs):
+        epoch_wall_start = time.perf_counter()
+        epoch_start_utc = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
         if device.type == "cuda":
             torch.cuda.reset_peak_memory_stats(device)
+            torch.cuda.synchronize(device)
+        epoch_train_start = time.perf_counter()
         model.train()
         total_loss = 0.0
         steps = 0
@@ -585,11 +659,20 @@ def _train_one(
 
         if device.type == "cuda":
             torch.cuda.synchronize(device)
-            train_peak_mb = max(
-                train_peak_mb,
-                torch.cuda.max_memory_allocated(device) / (1024**2),
-            )
+        epoch_training_seconds = time.perf_counter() - epoch_train_start
+        epoch_peak_allocated_mb = (
+            torch.cuda.max_memory_allocated(device) / (1024**2)
+            if device.type == "cuda"
+            else 0.0
+        )
+        epoch_peak_reserved_mb = (
+            torch.cuda.max_memory_reserved(device) / (1024**2)
+            if device.type == "cuda"
+            else 0.0
+        )
+        train_peak_mb = max(train_peak_mb, epoch_peak_allocated_mb)
 
+        validation_start = time.perf_counter()
         val_metrics = _evaluate(
             model,
             val_loader,
@@ -598,11 +681,26 @@ def _train_one(
             reset_peak_memory=False,
             detailed_metrics=False,
         )
+        if device.type == "cuda":
+            torch.cuda.synchronize(device)
+        epoch_validation_seconds = time.perf_counter() - validation_start
+        epoch_end_utc = datetime.now(timezone.utc).isoformat(timespec="milliseconds")
         epoch_result = {
             "epoch": epoch + 1,
             "train_loss": total_loss / max(steps, 1),
             "val_top1": val_metrics["top1"],
             "val_top5": val_metrics["top5"],
+            "epoch_start_utc": epoch_start_utc,
+            "epoch_end_utc": epoch_end_utc,
+            "epoch_training_seconds": epoch_training_seconds,
+            "epoch_validation_seconds": epoch_validation_seconds,
+            "epoch_total_seconds": time.perf_counter() - epoch_wall_start,
+            "gpu_device_index": gpu_device_index,
+            "gpu_visible_device_count": gpu_visible_device_count,
+            "gpu_name": gpu_name,
+            "gpu_total_memory_mb": gpu_total_memory_mb,
+            "gpu_peak_allocated_mb": epoch_peak_allocated_mb,
+            "gpu_peak_reserved_mb": epoch_peak_reserved_mb,
         }
         if "coarse_top1" in val_metrics:
             epoch_result["val_coarse_top1"] = val_metrics["coarse_top1"]
@@ -611,9 +709,12 @@ def _train_one(
                 epoch_result[f"val_{metric}"] = val_metrics[metric]
         history.append(epoch_result)
         print(
-            f"{model_name} seed={seed} epoch={epoch + 1}/{epochs} "
+            f"{model_name} fold={fold_index + 1}/{folds} seed={seed} epoch={epoch + 1}/{epochs} "
             f"train_loss={epoch_result['train_loss']:.4f} "
-            f"val_top1={epoch_result['val_top1']:.4f}",
+            f"val_top1={epoch_result['val_top1']:.4f} "
+            f"epoch_seconds={epoch_result['epoch_total_seconds']:.2f} "
+            f"gpu_peak_allocated_mb={epoch_peak_allocated_mb:.1f} "
+            f"gpu_peak_reserved_mb={epoch_peak_reserved_mb:.1f}",
             flush=True,
         )
         if float(val_metrics["top1"]) > best_val_top1:
@@ -652,6 +753,7 @@ def _train_one(
                     "seed": seed,
                     "fold_index": fold_index + 1,
                     "folds": folds,
+                    "data_split_audit": split_audit,
                     "completed_epochs": epoch + 1,
                     "best_epoch_by_validation_top1": best_epoch,
                     "best_validation_top1": best_val_top1,
@@ -711,8 +813,14 @@ def _train_one(
         "best_validation_taxonomy_agreement": best_val_taxonomy_agreement,
         "best_validation_hierarchy_consistency_mae": best_val_hierarchy_consistency_mae,
         "training_seconds_including_validation": training_seconds,
+        "run_wall_seconds": time.perf_counter() - run_wall_start,
         "train_images_per_epoch": len(train_loader.dataset),
         "validation_images": len(val_loader.dataset),
+        "data_split_audit": split_audit,
+        "gpu_device_index": gpu_device_index,
+        "gpu_visible_device_count": gpu_visible_device_count,
+        "gpu_name": gpu_name,
+        "gpu_total_memory_mb": gpu_total_memory_mb,
         "test": test_metrics,
         "num_parameters": num_parameters,
         "trainable_parameters": trainable_parameters,
@@ -738,12 +846,18 @@ def _train_one(
             "data_recipe": data_recipe,
             "epochs": epochs,
             "validation_split_seed": 1729,
+            "split_audit_version": "sha256_indices_v1",
             "validation_split_strategy": (
                 "fixed_stratified_holdout" if folds == 1 else "stratified_k_fold"
             ),
             "folds": folds,
             "fold_index": fold_index + 1,
             "validation_images_per_class": val_per_class if folds == 1 else None,
+            "training_indices_sha256": split_audit["training_indices_sha256"],
+            "validation_indices_sha256": split_audit["validation_indices_sha256"],
+            "train_validation_overlap_count": split_audit[
+                "train_validation_overlap_count"
+            ],
             "dataloader_workers": 0,
             "precision": "float32",
             "concept_supervision": (
@@ -758,6 +872,175 @@ def _train_one(
         },
     }
     return run_record
+
+
+def _write_timing_artifacts(
+    records: list[dict[str, Any]], output_dir: Path, *, benchmark_wall_seconds: float
+) -> dict[str, Any]:
+    """Write per-epoch and per-model timing/VRAM summaries for a benchmark run."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    epoch_path = output_dir / "epoch_timing.csv"
+    epoch_fields = [
+        "model",
+        "fold_index",
+        "seed",
+        "epoch",
+        "epoch_start_utc",
+        "epoch_end_utc",
+        "epoch_training_seconds",
+        "epoch_validation_seconds",
+        "epoch_total_seconds",
+        "gpu_device_index",
+        "gpu_visible_device_count",
+        "gpu_name",
+        "gpu_total_memory_mb",
+        "gpu_peak_allocated_mb",
+        "gpu_peak_reserved_mb",
+    ]
+    epoch_rows: list[dict[str, Any]] = []
+    for record in records:
+        for epoch_record in record.get("epochs", []):
+            epoch_rows.append(
+                {
+                    "model": record["model"],
+                    "fold_index": record.get("fold_index", 1),
+                    "seed": record["seed"],
+                    **{field: epoch_record.get(field) for field in epoch_fields[3:]},
+                }
+            )
+    with epoch_path.open("w", newline="", encoding="utf-8") as stream:
+        writer = csv.DictWriter(stream, fieldnames=epoch_fields)
+        writer.writeheader()
+        writer.writerows(epoch_rows)
+
+    summary_fields = [
+        "scope",
+        "model",
+        "seed",
+        "fold_count",
+        "fit_count",
+        "epoch_count",
+        "epoch_training_seconds",
+        "epoch_validation_seconds",
+        "sum_model_fold_seed_wall_seconds",
+        "mean_epoch_total_seconds",
+        "peak_gpu_allocated_mb",
+        "peak_gpu_reserved_mb",
+        "gpu_device_index",
+        "gpu_visible_device_count",
+        "gpu_name",
+        "benchmark_wall_seconds_through_aggregation",
+    ]
+    groups: list[tuple[str, str, int | str, list[dict[str, Any]]]] = []
+    for model_name in sorted({str(record["model"]) for record in records}):
+        model_records = [record for record in records if record["model"] == model_name]
+        for seed in sorted({int(record["seed"]) for record in model_records}):
+            groups.append(
+                (
+                    "model_seed",
+                    model_name,
+                    seed,
+                    [record for record in model_records if int(record["seed"]) == seed],
+                )
+            )
+        groups.append(("model_total", model_name, "", model_records))
+    groups.append(("overall", "__all__", "", records))
+
+    summary_rows: list[dict[str, Any]] = []
+    for scope, model_name, seed, group_records in groups:
+        epoch_records = [
+            epoch_record
+            for record in group_records
+            for epoch_record in record.get("epochs", [])
+        ]
+
+        def _sum_epoch_field(field: str) -> float:
+            return sum(float(item.get(field, 0.0) or 0.0) for item in epoch_records)
+
+        summary_rows.append(
+            {
+                "scope": scope,
+                "model": model_name,
+                "seed": seed,
+                "fold_count": len({int(record.get("fold_index", 1)) for record in group_records}),
+                "fit_count": len(group_records),
+                "epoch_count": len(epoch_records),
+                "epoch_training_seconds": _sum_epoch_field("epoch_training_seconds"),
+                "epoch_validation_seconds": _sum_epoch_field("epoch_validation_seconds"),
+                "sum_model_fold_seed_wall_seconds": sum(
+                    float(record.get("run_wall_seconds", 0.0) or 0.0)
+                    for record in group_records
+                ),
+                "mean_epoch_total_seconds": (
+                    statistics.mean(
+                        float(item.get("epoch_total_seconds", 0.0) or 0.0)
+                        for item in epoch_records
+                    )
+                    if epoch_records
+                    else 0.0
+                ),
+                "peak_gpu_allocated_mb": max(
+                    (float(item.get("gpu_peak_allocated_mb", 0.0) or 0.0) for item in epoch_records),
+                    default=0.0,
+                ),
+                "peak_gpu_reserved_mb": max(
+                    (float(item.get("gpu_peak_reserved_mb", 0.0) or 0.0) for item in epoch_records),
+                    default=0.0,
+                ),
+                "gpu_device_index": next(
+                    (record.get("gpu_device_index") for record in group_records if record.get("gpu_device_index") is not None),
+                    None,
+                ),
+                "gpu_visible_device_count": max(
+                    (int(record.get("gpu_visible_device_count", 0) or 0) for record in group_records),
+                    default=0,
+                ),
+                "gpu_name": next(
+                    (record.get("gpu_name") for record in group_records if record.get("gpu_name")),
+                    None,
+                ),
+                "benchmark_wall_seconds_through_aggregation": (
+                    benchmark_wall_seconds if scope == "overall" else None
+                ),
+            }
+        )
+    summary_path = output_dir / "timing_summary.csv"
+    with summary_path.open("w", newline="", encoding="utf-8") as stream:
+        writer = csv.DictWriter(stream, fieldnames=summary_fields)
+        writer.writeheader()
+        writer.writerows(summary_rows)
+
+    visible_gpu_counts = {
+        int(record.get("gpu_visible_device_count", 0) or 0) for record in records
+    }
+    runtime_summary = {
+        "gpu_devices_used_by_runner": 1 if any(visible_gpu_counts) else 0,
+        "gpu_visible_device_count": max(visible_gpu_counts, default=0),
+        "gpu_device_index_used": next(
+            (record.get("gpu_device_index") for record in records if record.get("gpu_device_index") is not None),
+            None,
+        ),
+        "gpu_name": next(
+            (record.get("gpu_name") for record in records if record.get("gpu_name")), None
+        ),
+        "model_fold_seed_fit_count": len(records),
+        "completed_epoch_count": len(epoch_rows),
+        "sum_epoch_training_seconds": sum(
+            float(item.get("epoch_training_seconds", 0.0) or 0.0)
+            for item in epoch_rows
+        ),
+        "sum_epoch_validation_seconds": sum(
+            float(item.get("epoch_validation_seconds", 0.0) or 0.0)
+            for item in epoch_rows
+        ),
+        "sum_model_fold_seed_wall_seconds": sum(
+            float(record.get("run_wall_seconds", 0.0) or 0.0) for record in records
+        ),
+        "benchmark_wall_seconds_through_aggregation": benchmark_wall_seconds,
+        "epoch_timing_csv": str(epoch_path),
+        "timing_summary_csv": str(summary_path),
+    }
+    return runtime_summary
 
 
 def run_cifar100_comparison(
@@ -788,6 +1071,8 @@ def run_cifar100_comparison(
 ) -> dict[str, Any]:
     import torch
 
+    benchmark_start = time.perf_counter()
+    benchmark_start_utc = datetime.now(timezone.utc).isoformat(timespec="seconds")
     unknown = sorted(set(models) - set(MODEL_NAMES))
     if unknown:
         raise ValueError(f"Unknown model(s): {', '.join(unknown)}")
@@ -804,8 +1089,14 @@ def run_cifar100_comparison(
 
     device = resolve_device(torch, device_name)
     device_label = str(device)
+    visible_gpu_count = 0
+    gpu_index_used = None
     if device.type == "cuda":
         device_label = f"{device} ({torch.cuda.get_device_name(device)})"
+        visible_gpu_count = int(torch.cuda.device_count())
+        gpu_index_used = (
+            int(device.index) if device.index is not None else int(torch.cuda.current_device())
+        )
     records: list[dict[str, Any]] = []
     root = Path(runs_dir)
     train_transform_description = (
@@ -855,6 +1146,7 @@ def run_cifar100_comparison(
                         "data_recipe": data_recipe,
                         "epochs": epochs,
                         "validation_split_seed": 1729,
+                        "split_audit_version": "sha256_indices_v1",
                         "validation_split_strategy": (
                             "fixed_stratified_holdout" if folds == 1 else "stratified_k_fold"
                         ),
@@ -932,6 +1224,35 @@ def run_cifar100_comparison(
                 gc.collect()
                 if device.type == "cuda":
                     torch.cuda.empty_cache()
+
+    split_hashes_by_fold: dict[int, dict[str, str]] = {}
+    for record in records:
+        audit = record.get("data_split_audit") or {}
+        if int(audit.get("train_validation_overlap_count", -1)) != 0:
+            raise RuntimeError(
+                f"Data leakage audit failed for {record['model']} fold {record.get('fold_index')}: "
+                "train/validation indices overlap"
+            )
+        fold_id = int(record.get("fold_index", 1))
+        split_signature = {
+            "training_indices_sha256": str(audit.get("training_indices_sha256", "")),
+            "validation_indices_sha256": str(audit.get("validation_indices_sha256", "")),
+        }
+        if not all(split_signature.values()):
+            raise RuntimeError(
+                f"Data leakage audit hashes are missing for {record['model']} fold {fold_id}"
+            )
+        previous_signature = split_hashes_by_fold.setdefault(fold_id, split_signature)
+        if previous_signature != split_signature:
+            raise RuntimeError(
+                f"Models/seeds do not share identical data indices in fold {fold_id}"
+            )
+    if set(split_hashes_by_fold) != set(range(1, folds + 1)):
+        raise RuntimeError("The benchmark is missing one or more requested validation folds")
+    if folds > 1 and len(
+        {signature["validation_indices_sha256"] for signature in split_hashes_by_fold.values()}
+    ) != folds:
+        raise RuntimeError("Different CV folds unexpectedly share identical validation indices")
 
     aggregate_metrics = (
         "top1",
@@ -1012,6 +1333,39 @@ def run_cifar100_comparison(
                 "folds": folds,
             }
 
+    runtime_summary = _write_timing_artifacts(
+        records,
+        Path(report_path).parent,
+        benchmark_wall_seconds=time.perf_counter() - benchmark_start,
+    )
+    runtime_summary.update(
+        {
+            "benchmark_started_at_utc": benchmark_start_utc,
+            "models_requested": len(models),
+            "seeds_requested": len(seeds),
+            "folds_requested": folds,
+            "epochs_requested_per_fit": epochs,
+            "gpu_devices_used_by_runner": 1 if device.type == "cuda" else 0,
+            "gpu_visible_device_count": visible_gpu_count,
+            "gpu_device_index_used": gpu_index_used,
+        }
+    )
+    data_leakage_audit = {
+        "train_validation_overlap_count_per_fit": 0,
+        "train_and_validation_cover_training_set_per_fit": True,
+        "each_training_example_is_validation_once_across_folds": folds > 1,
+        "same_index_hashes_across_all_models_and_seeds_per_fold": True,
+        "fold_partition_audit_passed_for_every_fit": folds > 1,
+        "official_test_dataset_loaded_for_post_training_evaluation": not validation_only,
+        "official_test_used_for_training_or_checkpoint_selection": False,
+        "official_test_used_for_gradient_updates_or_checkpoint_selection": False,
+        "official_test_had_prior_project_exposure": True,
+        "interpretation": (
+            "No direct train/validation overlap was detected within any fit. "
+            "The official test set is not a pristine confirmatory holdout because "
+            "earlier project runs inspected it; validation results are primary."
+        ),
+    }
     report: dict[str, Any] = {
         "benchmark_name": "CIFAR-100 controlled comparison",
         "protocol": {
@@ -1027,6 +1381,8 @@ def run_cifar100_comparison(
             "folds": folds,
             "validation_split_seed": 1729,
             "fold_assignment": "identical deterministic fine-label stratified folds for every model and seed",
+            "split_index_sha256_by_fold": split_hashes_by_fold,
+            "data_leakage_audit": data_leakage_audit,
             "validation_aggregation": "average quality and timing metrics within each seed across folds; sum training time and take peak memory within each seed across folds; then report mean and sample SD across seeds. Fold-level rows remain in runs and CSV.",
             "test": (
                 "not evaluated; validation-only mode"
@@ -1080,6 +1436,11 @@ def run_cifar100_comparison(
             ),
         },
         "hardware": device_label,
+        "gpu_devices_used": 1 if device.type == "cuda" else 0,
+        "gpu_visible_device_count": visible_gpu_count,
+        "gpu_device_index_used": gpu_index_used,
+        "runtime_summary": runtime_summary,
+        "data_leakage_audit": data_leakage_audit,
         "runs": records,
         "aggregate_mean_and_sample_std": aggregate,
         "validation_aggregate_mean_and_sample_std": aggregate if validation_only else None,
@@ -1129,4 +1490,11 @@ def run_cifar100_comparison(
             writer.writerow(row)
     print(f"Benchmark JSON: {report_file}", flush=True)
     print(f"Benchmark CSV: {csv_path}", flush=True)
+    print(f"Epoch timing and GPU memory CSV: {runtime_summary['epoch_timing_csv']}", flush=True)
+    print(f"Timing summary CSV: {runtime_summary['timing_summary_csv']}", flush=True)
+    print(
+        "Runtime summary: "
+        + json.dumps(runtime_summary, indent=2, sort_keys=True),
+        flush=True,
+    )
     return report
