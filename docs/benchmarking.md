@@ -55,8 +55,8 @@ confirmatory claims.
     nesy_cvt_no_hierarchy_consistency nesy_cvt_no_coarse_supervision `
     resnet18_cifar mobilenet_v3_small densenet121_cifar convnext_tiny_cifar `
     swin_t_cifar vit_tiny_patch4 wide_resnet28x10_cifar `
-  --data-recipe cifar100_standard_v2 --optimizer sgd --learning-rate 0.1 `
-  --weight-decay 0.0005 --lr-schedule cosine --grad-clip 0 `
+  --data-recipe cifar100_standard_v2 --optimizer adamw --learning-rate 0.0003 `
+  --weight-decay 0.01 --lr-schedule none --grad-clip 1.0 `
   --validation-only --resume `
   --runs-dir runs/cifar100-5fold-2epoch `
   --report results/cifar100-5fold-2epoch-validation.json
